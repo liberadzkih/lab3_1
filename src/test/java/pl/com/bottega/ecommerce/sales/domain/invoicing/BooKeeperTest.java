@@ -10,6 +10,8 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.math.BigDecimal;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,6 +73,50 @@ public class BooKeeperTest {
         Money gros = invoice.getGros();
         Money grosWithoutTax = gros.subtract(tax.getAmount());
         assertEquals(invoice.getNet(),grosWithoutTax);
+    }
+
+    @Test
+    void shouldUseCalculateTaxTwice(){
+        AtomicInteger invocationCount = new AtomicInteger();
+        when(taxPolicy.calculateTax(any(),any()))
+                .thenAnswer(invocationOnMock ->{
+                    invocationCount.getAndIncrement();
+                    return tax;
+                });
+
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        assertEquals(2,invocationCount.get());
+    }
+
+    @Test
+    void shouldNotUseCalculateTax(){
+        AtomicInteger invocationCount = new AtomicInteger();
+        when(taxPolicy.calculateTax(any(),any()))
+                .thenAnswer(invocationOnMock ->{
+                    invocationCount.getAndIncrement();
+                    return tax;
+                });
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        assertEquals(0,invocationCount.get());
+    }
+
+    @Test
+    void shouldUseMoneyFromProductData(){
+        AtomicReference<Money> moneyAtomicReference = new AtomicReference<>();
+        when(taxPolicy.calculateTax(any(),any()))
+                .thenAnswer(invocationOnMock ->{
+                    Money money = invocationOnMock.getArgument(1,Money.class);
+                    moneyAtomicReference.set(money);
+                    return tax;
+                });
+        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
+        invoiceRequest.add(requestItem);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        assertEquals(productData.getPrice(),moneyAtomicReference.get());
     }
 
 }
