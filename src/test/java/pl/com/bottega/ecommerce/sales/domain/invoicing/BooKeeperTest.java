@@ -2,9 +2,6 @@ package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -12,111 +9,147 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+;
 
 public class BooKeeperTest {
-    TaxPolicy taxPolicy;
-    Money money;
+    TaxPolicy taxPolicyMock;
+    BookKeeper bookKeeper;
     Tax tax;
-    InvoiceFactory invoiceFactory;
-    ClientData clientData;
-    InvoiceRequest invoiceRequest;
-    Product product;
-    ProductData productData;
-    RequestItem requestItem;
 
     @BeforeEach
-    void initialize(){
-        taxPolicy = mock(TaxPolicy.class);
-        money = new Money(BigDecimal.TEN);
-        tax = new Tax(money, "Some tax");
-        invoiceFactory =new InvoiceFactory();
-        clientData = new ClientData(Id.generate(),"Tomasz Nowak");
-        invoiceRequest = new InvoiceRequest(clientData);
-        product = new Product(Id.generate(),money,"Kiełbasa", ProductType.FOOD);
-        productData = product.generateSnapshot();
-        requestItem = new RequestItem(productData,2,money);
+    void initialize() {
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+        tax = new Tax(
+                new Money(BigDecimal.TEN),
+                "Somze Tax"
+        );
+        taxPolicyMock = mock(TaxPolicy.class);
     }
 
     @Test
-    void shouldReturnInvoiceWithOnePosition(){
-        when(taxPolicy.calculateTax(any(),any()))
-                .thenReturn(tax);
-
-        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
-        invoiceRequest.add(requestItem);
-        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
-        assertEquals(1,invoice.getItems().size());
+    void shouldReturnInvoiceWithOnePosition() {
+        TaxPolicy taxPolicy = getTaxPolicyMockWithTax(BigDecimal.TEN, "Some tax");
+        InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(1);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertEquals(1, invoice.getItems().size());
     }
 
     @Test
-    void shouldReturnInvoiceWithoutPosition(){
-        when(taxPolicy.calculateTax(any(),any()))
-                .thenReturn(tax);
-
-        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
-        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
-        assertEquals(0,invoice.getItems().size());
+    void shouldReturnInvoiceWithoutPosition() {
+        TaxPolicy taxPolicy = getTaxPolicyMockWithTax(BigDecimal.TEN, "Some tax");
+        InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(0);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertEquals(0, invoice.getItems().size());
     }
 
     @Test
-    void shouldAddNetToGros(){
-        when(taxPolicy.calculateTax(any(),any()))
-                .thenReturn(tax);
-
-        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
-        invoiceRequest.add(requestItem);
-        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+    void shouldAddNetToGros() {
+        Money money = new Money(BigDecimal.TEN);
+        TaxPolicy taxPolicy = getTaxPolicyMockWithTax(money, "Some tax");
+        InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(1);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         Money gros = invoice.getGros();
-        Money grosWithoutTax = gros.subtract(tax.getAmount());
-        assertEquals(invoice.getNet(),grosWithoutTax);
+        Money grosWithoutTax = gros.subtract(money);
+        assertEquals(invoice.getNet(), grosWithoutTax);
     }
 
     @Test
-    void shouldUseCalculateTaxTwice(){
+    void shouldUseCalculateTaxTwice() {
+        InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(2);
         AtomicInteger invocationCount = new AtomicInteger();
-        when(taxPolicy.calculateTax(any(),any()))
-                .thenAnswer(invocationOnMock ->{
+
+        when(taxPolicyMock.calculateTax(any(), any()))
+                .thenAnswer(invocationOnMock -> {
                     invocationCount.getAndIncrement();
                     return tax;
                 });
 
-        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
-        invoiceRequest.add(requestItem);
-        invoiceRequest.add(requestItem);
-        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
-        assertEquals(2,invocationCount.get());
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        assertEquals(2, invocationCount.get());
     }
 
     @Test
-    void shouldNotUseCalculateTax(){
+    void shouldNotUseCalculateTax() {
+        InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(0);
         AtomicInteger invocationCount = new AtomicInteger();
-        when(taxPolicy.calculateTax(any(),any()))
-                .thenAnswer(invocationOnMock ->{
+
+        when(taxPolicyMock.calculateTax(any(), any()))
+                .thenAnswer(invocationOnMock -> {
                     invocationCount.getAndIncrement();
                     return tax;
                 });
-        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
-        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
-        assertEquals(0,invocationCount.get());
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        assertEquals(0, invocationCount.get());
     }
 
     @Test
-    void shouldUseMoneyFromProductData(){
+    void shouldUseMoneyFromProductData() {
         AtomicReference<Money> moneyAtomicReference = new AtomicReference<>();
-        when(taxPolicy.calculateTax(any(),any()))
-                .thenAnswer(invocationOnMock ->{
-                    Money money = invocationOnMock.getArgument(1,Money.class);
+
+        when(taxPolicyMock.calculateTax(any(), any()))
+                .thenAnswer(invocationOnMock -> {
+                    Money money = invocationOnMock.getArgument(1, Money.class);
                     moneyAtomicReference.set(money);
                     return tax;
                 });
-        BookKeeper bookKeeper = new BookKeeper(invoiceFactory);
-        invoiceRequest.add(requestItem);
-        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
-        assertEquals(productData.getPrice(),moneyAtomicReference.get());
+
+        RequestItem requestItem = getRequestItem();
+
+        InvoiceRequest invoiceRequest = new InvoiceRequestBuilder()
+                .addRequestItem(requestItem)
+                .build();
+
+        Money totalCost = requestItem.getTotalCost();
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        assertEquals(totalCost, moneyAtomicReference.get());
+    }
+
+
+    TaxPolicy getTaxPolicyMockWithTax(BigDecimal denomination, String description) {
+        Money money = new Money(denomination);
+        return getTaxPolicyMockWithTax(money, description);
+    }
+
+    TaxPolicy getTaxPolicyMockWithTax(Money money, String description) {
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(any(), any()))
+                .thenReturn(
+                        new Tax(money, description)
+                );
+        return taxPolicy;
+    }
+
+    InvoiceRequest getInvoiceRequestWithNumberOfItems(int numberOfItems) {
+        InvoiceRequestBuilder invoiceRequestBuilder = new InvoiceRequestBuilder()
+                .withClientOfName("Tomasz Nowak");
+
+        IntStream.range(0, numberOfItems).forEach(
+                value -> invoiceRequestBuilder.addRequestItem(getRequestItem())
+        );
+        return invoiceRequestBuilder.build();
+    }
+
+    RequestItem getRequestItem() {
+        ProductData productData = new ProductBuilder()
+                .productType(ProductType.FOOD)
+                .name("Kiełbasa")
+                .price(BigDecimal.ZERO)
+                .build()
+                .generateSnapshot();
+
+        return new RequestItemBuilder()
+                .productData(productData)
+                .quantity(2)
+                .totalCost(BigDecimal.TEN)
+                .build();
     }
 
 }
