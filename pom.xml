@@ -8,7 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<jdk.version>1.8</jdk.version>
+		<jdk.version>11</jdk.version>
 		<junit.version>4.12</junit.version>
 	</properties>
 	<dependencies>
