@@ -6,7 +6,6 @@ import org.mockito.Mockito;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
@@ -18,111 +17,94 @@ import static org.mockito.Matchers.any;
 
 public class BookKeeperTests {
 
-    BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
-    InvoiceRequest invoiceRequest;
+    private BookKeeper bookKeeper = new BookKeeper(new InvoiceFactory());
+    private InvoiceRequest invoiceRequest;
+    private TaxPolicy taxPolicy;
 
     @Before
     public void initInvoiceRequest() {
         invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "CBA"));
+
+        taxPolicy = Mockito.mock(TaxPolicy.class);
+        Mockito.when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class)))
+               .thenReturn(new Tax(new Money(BigDecimal.ZERO), "Tax"));
     }
 
     @Test
     public void expectedInvoiceWithOneElement() {
-        Money money = new Money(BigDecimal.valueOf(111));
-        Product product = new Product(Id.generate(), money, "Aspirin", ProductType.DRUG);
-        ProductData productData = product.generateSnapshot();
+        Product product = new ProductBuilder().build();
+        RequestItem requestItem = new RequestItemBuilder().withProductData(product.generateSnapshot()).build();
+        invoiceRequest.add(requestItem);
 
-        invoiceRequest.add(new RequestItem(productData, 5, money));
-
-        TaxPolicy taxPolicyStub = Mockito.mock(TaxPolicy.class);
-        Mockito.when(taxPolicyStub.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(money, "Tax"));
-
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyStub);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(1, equalTo(invoice.getItems().size()));
     }
 
     @Test
     public void expectedInvoiceWithoutElements() {
-        TaxPolicy taxPolicyStub = Mockito.mock(TaxPolicy.class);
-        Mockito.when(taxPolicyStub.calculateTax(any(ProductType.class), any(Money.class)))
-               .thenReturn(new Tax(new Money(BigDecimal.valueOf(111)), "Tax"));
-
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyStub);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(0, equalTo(invoice.getItems().size()));
     }
 
     @Test
     public void expectedSpecificInvoiceCost() {
-        Money money1 = new Money(BigDecimal.valueOf(111));
-        Product product1 = new Product(Id.generate(), money1, "Aspirin", ProductType.DRUG);
-        ProductData productData1 = product1.generateSnapshot();
+        Product product1 = new ProductBuilder().withName("Banana").build();
+        Product product2 = new ProductBuilder().withName("Orange").build();
 
-        invoiceRequest.add(new RequestItem(productData1, 1, money1));
+        RequestItem requestItem1 = new RequestItemBuilder().withProductData(product1.generateSnapshot())
+                                                           .withTotalCost(new Money(BigDecimal.valueOf(100)))
+                                                           .build();
+        RequestItem requestItem2 = new RequestItemBuilder().withProductData(product2.generateSnapshot())
+                                                           .withTotalCost(new Money(BigDecimal.valueOf(200)))
+                                                           .build();
 
-        Money money2 = new Money(BigDecimal.valueOf(222));
-        Product product2 = new Product(Id.generate(), money2, "Banana", ProductType.FOOD);
-        ProductData productData2 = product2.generateSnapshot();
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem2);
 
-        invoiceRequest.add(new RequestItem(productData2, 2, money2));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        TaxPolicy taxPolicyStub = Mockito.mock(TaxPolicy.class);
-        Mockito.when(taxPolicyStub.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(money1, "Tax"));
-
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyStub);
-
-        assertThat(invoice.getNet(), equalTo(money1.add(money2)));
+        assertThat(invoice.getNet(), equalTo(requestItem1.getTotalCost().add(requestItem2.getTotalCost())));
     }
 
     @Test
     public void expectedTwoCallsOfCalculateTax() {
-        Money money1 = new Money(BigDecimal.valueOf(111));
-        Product product1 = new Product(Id.generate(), money1, "Aspirin", ProductType.DRUG);
-        ProductData productData1 = product1.generateSnapshot();
+        Product product1 = new ProductBuilder().withName("Aspirin").withProductType(ProductType.DRUG).build();
+        Product product2 = new ProductBuilder().withName("Orange").withProductType(ProductType.FOOD).build();
 
-        invoiceRequest.add(new RequestItem(productData1, 1, money1));
+        RequestItem requestItem1 = new RequestItemBuilder().withProductData(product1.generateSnapshot())
+                                                           .withTotalCost(new Money(BigDecimal.valueOf(100)))
+                                                           .build();
+        RequestItem requestItem2 = new RequestItemBuilder().withProductData(product2.generateSnapshot())
+                                                           .withTotalCost(new Money(BigDecimal.valueOf(200)))
+                                                           .build();
 
-        Money money2 = new Money(BigDecimal.valueOf(222));
-        Product product2 = new Product(Id.generate(), money2, "Banana", ProductType.FOOD);
-        ProductData productData2 = product2.generateSnapshot();
-
-        invoiceRequest.add(new RequestItem(productData2, 2, money2));
-
-        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Mockito.when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(money1, "Tax"));
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem2);
 
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        Mockito.verify(taxPolicy).calculateTax(ProductType.DRUG, money1);
-        Mockito.verify(taxPolicy).calculateTax(ProductType.FOOD, money2);
+        Mockito.verify(taxPolicy).calculateTax(ProductType.DRUG, requestItem1.getTotalCost());
+        Mockito.verify(taxPolicy).calculateTax(ProductType.FOOD, requestItem2.getTotalCost());
         Mockito.verify(taxPolicy, Mockito.times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
     @Test
     public void expectedZeroCallsOfCalculateTax() {
-        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Mockito.when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class)))
-               .thenReturn(new Tax(new Money(BigDecimal.valueOf(111)), "Tax"));
-
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         Mockito.verify(taxPolicy, Mockito.times(0)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
     @Test
-    public void expectedZeroCallsOfCalculate() {
-        Money money = new Money(BigDecimal.valueOf(111));
-        Product product = new Product(Id.generate(), money, "Aspirin", ProductType.DRUG);
-        ProductData productData = product.generateSnapshot();
+    public void expectedAtMostTwoCallsOfGetProductData() {
+        Product product = new ProductBuilder().build();
 
         RequestItem requestItem = Mockito.mock(RequestItem.class);
-        Mockito.when(requestItem.getProductData()).thenReturn(productData);
-        Mockito.when(requestItem.getTotalCost()).thenReturn(money);
-        Mockito.when(requestItem.getQuantity()).thenReturn(5);
+        Mockito.when(requestItem.getProductData()).thenReturn(product.generateSnapshot());
+        Mockito.when(requestItem.getTotalCost()).thenReturn(new Money(BigDecimal.ZERO));
+        Mockito.when(requestItem.getQuantity()).thenReturn(0);
 
         invoiceRequest.add(requestItem);
-
-        TaxPolicy taxPolicy = Mockito.mock(TaxPolicy.class);
-        Mockito.when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(money, "Tax"));
 
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
