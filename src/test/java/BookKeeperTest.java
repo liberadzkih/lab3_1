@@ -66,6 +66,23 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void demand_for_invoice_with_zero_item_should_return_zero() {
+        Invoice result = bookKeeper.issuance(request, taxPolicyMock);
+
+        assertThat(result.getItems(), hasSize(0)); 
+    }
+
+    @Test
+    public void demand_for_invoice_with_two_item_should_return_two() {
+        request.add(item1);
+        request.add(item2);
+
+        Invoice result = bookKeeper.issuance(request, taxPolicyMock);
+
+        assertThat(result.getItems(), hasSize(2));
+    }
+
+    @Test
     public void demand_for_invoice_with_two_items_should_invoke_taxPolicy_two_times() {
         //given
         request.add(item1);
