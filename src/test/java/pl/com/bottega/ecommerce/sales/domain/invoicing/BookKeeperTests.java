@@ -10,6 +10,7 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,6 +33,17 @@ public class BookKeeperTests {
     }
 
     // STATE TESTS
+    @Test()
+    public void nullInvoiceRequestIssuanceThrowsNullException() {
+        assertThrows(NullPointerException.class, () -> bookKeeper.issuance(null, taxPolicy));
+    }
+
+    @Test
+    public void zeroPositionIssuanceReturnsZeroPositionInvoice() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+    }
+
     @Test
     public void singlePositionIssuanceReturnsSinglePositionInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
