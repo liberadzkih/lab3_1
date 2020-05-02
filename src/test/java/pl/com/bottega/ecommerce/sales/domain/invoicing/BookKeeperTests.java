@@ -43,4 +43,20 @@ public class BookKeeperTests {
 
          assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
     }
+
+    // BEHAVIORAL TESTS
+    @Test
+    public void calculateTaxShouldBeCalledTwoTimes() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        Money money = new Money(100);
+        Product product = new Product(Id.generate(), money, "Facemask", ProductType.STANDARD);
+        ProductData productData = product.generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, money);
+        invoiceRequest.add(requestItem);
+        invoiceRequest.add(requestItem);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
+    }
 }
