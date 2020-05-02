@@ -104,7 +104,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void demand_for_invoice_with_four_items_should_invoke_taxPolicy_four_times() {
+    public void demand_for_invoice_with_three_items_should_invoke_taxPolicy_three_times() {
         request.add(item1);
         request.add(item1);
         request.add(item1);
