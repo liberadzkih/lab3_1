@@ -4,7 +4,9 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public class RequestItemBuilder {
-    private ProductData productData = new ProductBuilder().build().generateSnapshot();
+
+    private ProductData productData = new ProductBuilder().build()
+                                                          .generateSnapshot();
     private int quantity = 1;
     private Money totalCost;
 

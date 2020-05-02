@@ -6,6 +6,7 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public class ProductBuilder {
+
     private Id id = Id.generate();
     private Money price = Money.ZERO;
     private String name = "ProductName";

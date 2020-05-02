@@ -1,20 +1,21 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
-import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
-import pl.com.bottega.ecommerce.sharedkernel.Money;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
+import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
+import pl.com.bottega.ecommerce.sharedkernel.Money;
+
 public class BookKeeperTests {
+
     private Tax tax;
     private TaxPolicy taxPolicy;
     private BookKeeper bookKeeper;
@@ -41,19 +42,27 @@ public class BookKeeperTests {
     @Test
     public void zeroPositionIssuanceReturnsZeroPositionInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
-        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+        assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy)
+                                  .getItems()
+                                  .size());
     }
 
     @Test
     public void singlePositionIssuanceReturnsSinglePositionInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(100);
-        Product product = new Product(Id.generate(), money, "Facemask", ProductType.STANDARD);
-        ProductData productData = product.generateSnapshot();
-        RequestItem requestItem = new RequestItem(productData, 1, money);
+        Product product = new ProductBuilder().withPrice(money)
+                                              .withName("Facemask")
+                                              .withProductType(ProductType.STANDARD)
+                                              .build();
+        RequestItem requestItem = new RequestItemBuilder().withProductData(product.generateSnapshot())
+                                                          .withTotalCost(money)
+                                                          .build();
         invoiceRequest.add(requestItem);
 
-         assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy).getItems().size());
+        assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy)
+                                  .getItems()
+                                  .size());
     }
 
     // BEHAVIORAL TESTS
@@ -69,9 +78,13 @@ public class BookKeeperTests {
     public void calculateTaxShouldBeCalledTwoTimes() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(100);
-        Product product = new Product(Id.generate(), money, "Facemask", ProductType.STANDARD);
-        ProductData productData = product.generateSnapshot();
-        RequestItem requestItem = new RequestItem(productData, 1, money);
+        Product product = new ProductBuilder().withPrice(money)
+                                              .withName("Facemask")
+                                              .withProductType(ProductType.STANDARD)
+                                              .build();
+        RequestItem requestItem = new RequestItemBuilder().withProductData(product.generateSnapshot())
+                                                          .withTotalCost(money)
+                                                          .build();
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem);
 
@@ -84,9 +97,13 @@ public class BookKeeperTests {
     public void calculateTaxShouldBeCalledThreeTimes() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(100);
-        Product product = new Product(Id.generate(), money, "Facemask", ProductType.STANDARD);
-        ProductData productData = product.generateSnapshot();
-        RequestItem requestItem = new RequestItem(productData, 1, money);
+        Product product = new ProductBuilder().withPrice(money)
+                                              .withName("Facemask")
+                                              .withProductType(ProductType.STANDARD)
+                                              .build();
+        RequestItem requestItem = new RequestItemBuilder().withProductData(product.generateSnapshot())
+                                                          .withTotalCost(money)
+                                                          .build();
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem);
