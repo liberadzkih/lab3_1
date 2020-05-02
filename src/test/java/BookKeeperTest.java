@@ -69,7 +69,7 @@ public class BookKeeperTest {
     public void demand_for_invoice_with_zero_item_should_return_zero() {
         Invoice result = bookKeeper.issuance(request, taxPolicyMock);
 
-        assertThat(result.getItems(), hasSize(0)); 
+        assertThat(result.getItems(), hasSize(0));
     }
 
     @Test
@@ -92,6 +92,26 @@ public class BookKeeperTest {
         //then
         verify(taxPolicyMock).calculateTax(item1.getProductData().getType(), item1.getProductData().getPrice());
         verify(taxPolicyMock).calculateTax(item2.getProductData().getType(), item2.getProductData().getPrice());
+    }
+
+    @Test
+    public void demand_for_invoice_with_one_items_should_invoke_taxPolicy_one_time() {
+        request.add(item1);
+
+        bookKeeper.issuance(request, taxPolicyMock);
+
+        verify(taxPolicyMock).calculateTax(item1.getProductData().getType(), item1.getProductData().getPrice());
+    }
+
+    @Test
+    public void demand_for_invoice_with_four_items_should_invoke_taxPolicy_four_times() {
+        request.add(item1);
+        request.add(item1);
+        request.add(item1);
+
+        bookKeeper.issuance(request, taxPolicyMock);
+
+        verify(taxPolicyMock,times(3)).calculateTax(item1.getProductData().getType(), item1.getProductData().getPrice());
     }
 
 }
