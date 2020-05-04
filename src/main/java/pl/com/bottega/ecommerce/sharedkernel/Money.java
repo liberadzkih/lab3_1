@@ -26,7 +26,8 @@ public class Money {
 
     private String currencyCode;
 
-    protected Money() {}
+    protected Money() {
+    }
 
     public Money(BigDecimal denomination, Currency currency) {
         this(denomination, currency.getCurrencyCode());
@@ -90,7 +91,7 @@ public class Money {
 
     /**
      * @return currency from this object or otherCurrencyCode. Preferred is the one that comes from Money that has
-     *         non-zero value.
+     * non-zero value.
      */
     private Currency determineCurrencyCode(Money otherMoney) {
         String resultingCurrenctCode = isZero(denomination) ? otherMoney.currencyCode : currencyCode;
@@ -117,13 +118,11 @@ public class Money {
         return denomination.compareTo(other.denomination) <= 0;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return String.format("%0$.2f %s", denomination, getCurrency().getSymbol());
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((currencyCode == null) ? 0 : currencyCode.hashCode());
@@ -131,8 +130,7 @@ public class Money {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    @Override public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -151,13 +149,9 @@ public class Money {
             return false;
         }
         if (denomination == null) {
-            if (other.denomination != null) {
-                return false;
-            }
-        } else if (!denomination.equals(other.denomination)) {
-            return false;
-        }
-        return true;
+            return other.denomination == null;
+        } else
+            return denomination.equals(other.denomination);
     }
 
 }

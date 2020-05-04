@@ -19,22 +19,22 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public class Tax {
 
-	private Money amount;
+    private Money amount;
 
-	private String description;
+    private String description;
 
-	public Tax(Money amount, String description) {
-		super();
-		this.amount = amount;
-		this.description = description;
-	}
+    public Tax(Money amount, String description) {
+        super();
+        this.amount = amount;
+        this.description = description;
+    }
 
-	public Money getAmount() {
-		return amount;
-	}
+    public Money getAmount() {
+        return amount;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
 }

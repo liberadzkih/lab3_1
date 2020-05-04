@@ -23,57 +23,51 @@ import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
+public class Invoice {
 
-public class Invoice  {
+    private ClientData client;
 
+    private Money net;
 
-	private ClientData client;
+    private Money gros;
 
+    private List<InvoiceLine> items;
 
-	private Money net;
+    private Id id;
 
-	private Money gros;
+    Invoice(Id invoiceId, ClientData client) {
+        this.id = invoiceId;
+        this.client = client;
+        this.items = new ArrayList<InvoiceLine>();
 
-	private List<InvoiceLine> items;
+        this.net = Money.ZERO;
+        this.gros = Money.ZERO;
+    }
 
+    public void addItem(InvoiceLine item) {
+        items.add(item);
 
-	private Id id;
+        net = net.add(item.getNet());
+        gros = gros.add(item.getGros());
+    }
 
-	Invoice(Id invoiceId, ClientData client) {
-		this.id = invoiceId;
-		this.client = client;
-		this.items = new ArrayList<InvoiceLine>();
-		
-		this.net = Money.ZERO;
-		this.gros = Money.ZERO;
-	}
-	
+    /**
+     * @return immutable projection
+     */
+    public List<InvoiceLine> getItems() {
+        return Collections.unmodifiableList(items);
+    }
 
-	public void addItem(InvoiceLine item) {
-		items.add(item);
+    public ClientData getClient() {
+        return client;
+    }
 
-		net = net.add(item.getNet());
-		gros = gros.add(item.getGros());
-	}
+    public Money getNet() {
+        return net;
+    }
 
-	/**
-	 * 
-	 * @return immutable projection
-	 */
-	public List<InvoiceLine> getItems() {
-		return Collections.unmodifiableList(items);
-	}
-
-	public ClientData getClient() {
-		return client;
-	}
-
-	public Money getNet() {
-		return net;
-	}
-
-	public Money getGros() {
-		return gros;
-	}
+    public Money getGros() {
+        return gros;
+    }
 
 }
