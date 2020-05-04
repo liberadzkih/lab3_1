@@ -45,6 +45,24 @@ class BookKeeperTest {
         assertEquals(1, invoice.getItems().size());
     }
 
+    @Test void requestingInvoiceWithZeroItems_shouldReturnInvoiceWithNoItems() {
+
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+        Invoice invoice = bookKeeper.issuance(request, taxMock);
+
+        assertEquals(0, invoice.getItems().size());
+    }
+
+    @Test void passingNullAsMethodParameters_shouldThrowNullPointerException() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+        request.add(new RequestItem(createSampleProductData("Item", ProductType.STANDARD), 1, money));
+
+        assertThrows(NullPointerException.class, () -> bookKeeper.issuance(null, taxMock));
+        assertThrows(NullPointerException.class, () -> bookKeeper.issuance(request, null));
+    }
+
     //Behaviour tests
     @Test void requestingInvoiceWithTwoItems_expectedCalculateTaxCallTwice() {
 
