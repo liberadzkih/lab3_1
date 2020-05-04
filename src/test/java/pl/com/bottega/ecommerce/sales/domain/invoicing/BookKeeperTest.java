@@ -93,6 +93,20 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void shouldCallCalculateTaxMethodAtLeastOnce() {
+        Money firstMoney = new Money(BigDecimal.valueOf(50));
+        Product firstProduct = new Product(Id.generate(), firstMoney, "Orange", ProductType.FOOD);
+        ProductData firstProductData = firstProduct.generateSnapshot();
+        RequestItem firstRequestItem = new RequestItem(firstProductData, 2, firstMoney);
+        invoiceRequest.add(firstRequestItem);
+
+        Mockito.when(taxPolicy.calculateTax(Mockito.any(ProductType.class), Mockito.any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        Mockito.verify(taxPolicy, Mockito.atLeastOnce()).calculateTax(Mockito.any(ProductType.class), Mockito.any(Money.class));
+    }
+
+    @Test
     public void shouldNeverCallCalculateTaxMethod() {
         Mockito.when(taxPolicy.calculateTax(Mockito.any(ProductType.class), Mockito.any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
         Mockito.verify(taxPolicy, Mockito.never()).calculateTax(Mockito.any(ProductType.class), Mockito.any(Money.class));
