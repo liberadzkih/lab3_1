@@ -44,6 +44,33 @@ public class BookKeeperTest {
         assertThat(1, equalTo(invoice.getItems().size()));
     }
 
+    @Test
+    public void shouldReturnInvoiceWithoutPosition() {
+        Mockito.when(taxPolicy.calculateTax(Mockito.any(ProductType.class), Mockito.any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(0, equalTo(invoice.getItems().size()));
+    }
+
+    @Test
+    public void shouldReturnInvoiceWithTwoPosition(){
+        Money firstMoney = new Money(BigDecimal.valueOf(50));
+        Product firstProduct = new Product(Id.generate(), firstMoney, "Orange", ProductType.FOOD);
+        ProductData firstProductData = firstProduct.generateSnapshot();
+        RequestItem firstRequestItem = new RequestItem(firstProductData, 2, firstMoney);
+        invoiceRequest.add(firstRequestItem);
+
+        Money secondMoney = new Money(BigDecimal.valueOf(36));
+        Product secondProduct = new Product(Id.generate(), secondMoney, "Phone", ProductType.STANDARD);
+        ProductData secondProductData = secondProduct.generateSnapshot();
+        RequestItem secondRequestItem = new RequestItem(secondProductData, 2, secondMoney);
+        invoiceRequest.add(secondRequestItem);
+
+        Mockito.when(taxPolicy.calculateTax(Mockito.any(ProductType.class), Mockito.any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(2, equalTo(invoice.getItems().size()));
+    }
+
     //Behavior test
     @Test
     public void shouldCallCalculateTaxMethodTwice() {
