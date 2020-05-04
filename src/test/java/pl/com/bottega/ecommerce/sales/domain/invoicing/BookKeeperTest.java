@@ -82,4 +82,26 @@ class BookKeeperTest {
 
         verify(taxMock, times(2)).calculateTax(any(), any());
     }
+
+    @Test void requestingInvoiceWithZeroItems_expectedZeroCalculateTaxCalls() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+
+        bookKeeper.issuance(request, taxMock);
+
+        verify(taxMock, never()).calculateTax(any(), any());
+    }
+
+    @Test void requestingInvoiceWithOneItem_expectedCalculateTaxCallOnce() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+
+        RequestItem item = new RequestItem(createSampleProductData("Item", ProductType.STANDARD), 1, money);
+
+        request.add(item);
+
+        bookKeeper.issuance(request, taxMock);
+
+        verify(taxMock).calculateTax(item.getProductData().getType(), money);
+    }
 }
