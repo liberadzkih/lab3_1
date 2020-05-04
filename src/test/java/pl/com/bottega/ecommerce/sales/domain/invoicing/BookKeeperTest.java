@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductBuilder;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
@@ -20,9 +20,18 @@ class BookKeeperTest {
     private Money money;
     private BookKeeper bookKeeper;
 
+    private RequestItem createStandardRequestItem() {
+        Product product = new ProductBuilder().withProductType(ProductType.STANDARD)
+                                              .withId(Id.generate())
+                                              .withName("Item")
+                                              .withPrice(money)
+                                              .build();
+        return new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(1).withTotalCost(money).build();
+    }
+
     @BeforeEach void setUp() {
 
-        money = new Money(1);
+        money = Money.ZERO;
 
         taxMock = mock(TaxPolicy.class);
         when(taxMock.calculateTax(any(), any())).thenReturn(new Tax(money, "Tax"));
@@ -30,16 +39,13 @@ class BookKeeperTest {
         bookKeeper = new BookKeeper(new InvoiceFactory());
     }
 
-    private ProductData createSampleProductData(String productName, ProductType type) {
-        return new Product(Id.generate(), money, productName, type).generateSnapshot();
-    }
-
     //State tests
     @Test void requestingInvoiceWithOneItem_shouldReturnOneItemInvoice() {
 
         ClientData clientData = new ClientData(Id.generate(), "Client");
         InvoiceRequest request = new InvoiceRequest(clientData);
-        request.add(new RequestItem(createSampleProductData("Item", ProductType.STANDARD), 1, money));
+        RequestItem requestItem = createStandardRequestItem();
+        request.add(requestItem);
         Invoice invoice = bookKeeper.issuance(request, taxMock);
 
         assertEquals(1, invoice.getItems().size());
@@ -57,7 +63,8 @@ class BookKeeperTest {
     @Test void passingNullAsMethodParameters_shouldThrowNullPointerException() {
         ClientData clientData = new ClientData(Id.generate(), "Client");
         InvoiceRequest request = new InvoiceRequest(clientData);
-        request.add(new RequestItem(createSampleProductData("Item", ProductType.STANDARD), 1, money));
+        RequestItem requestItem = createStandardRequestItem();
+        request.add(requestItem);
 
         assertThrows(NullPointerException.class, () -> bookKeeper.issuance(null, taxMock));
         assertThrows(NullPointerException.class, () -> bookKeeper.issuance(request, null));
@@ -69,9 +76,10 @@ class BookKeeperTest {
         ClientData clientData = new ClientData(Id.generate(), "Client");
         InvoiceRequest request = new InvoiceRequest(clientData);
 
-        RequestItem firstItem = new RequestItem(createSampleProductData("Drug", ProductType.DRUG), 1, money);
-        RequestItem secondItem = new RequestItem(createSampleProductData("Food", ProductType.FOOD), 1, money);
-
+        Product firstProduct = new ProductBuilder().withProductType(ProductType.DRUG).withName("Drug").build();
+        Product secondProduct = new ProductBuilder().withProductType(ProductType.FOOD).withName("Food").build();
+        RequestItem firstItem = new RequestItemBuilder().withProductData(firstProduct.generateSnapshot()).build();
+        RequestItem secondItem = new RequestItemBuilder().withProductData(secondProduct.generateSnapshot()).build();
         request.add(firstItem);
         request.add(secondItem);
 
@@ -96,7 +104,7 @@ class BookKeeperTest {
         ClientData clientData = new ClientData(Id.generate(), "Client");
         InvoiceRequest request = new InvoiceRequest(clientData);
 
-        RequestItem item = new RequestItem(createSampleProductData("Item", ProductType.STANDARD), 1, money);
+        RequestItem item = createStandardRequestItem();
 
         request.add(item);
 
