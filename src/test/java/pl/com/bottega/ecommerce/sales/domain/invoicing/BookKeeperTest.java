@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,4 +65,24 @@ class BookKeeperTest {
         verify(taxPolicy).calculateTax(requestItem.getProductData().getType(),requestItem.getProductData().getPrice());
     }
 
+    //2 kolejne testy stanu
+    //żądanie wydania faktury z 20 pozycjami powinno zwrócić fakturę z 20 pozycjami
+    @Test
+    public void invoiceRequestWithTwentyPositionsReturnInvoiceWithTwentyPositions(){
+        for(int i=0;i<20;i++)
+            invoiceRequest.add(requestItem);
+
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        assertThat(invoice.getItems(),hasSize(20));
+    }
+
+    //żądanie wydania faktury z setka pozycji powinno zwrócić fakturę z setka pozycji
+    @Test
+    public void invoiceRequestWithOneHundredPositionsReturnInvoiceWithOneHundredPositions(){
+        for(int i=0;i<100;i++)
+            invoiceRequest.add(requestItem);
+
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        assertThat(invoice.getItems(),hasSize(100));
+    }
 }
