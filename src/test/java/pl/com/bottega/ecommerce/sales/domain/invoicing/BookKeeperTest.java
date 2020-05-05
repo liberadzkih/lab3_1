@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductBuilder;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
@@ -16,7 +17,6 @@ import java.math.BigDecimal;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -41,7 +41,7 @@ class BookKeeperTest {
         clientData = new ClientData(id,"client");
         invoiceRequest = new InvoiceRequest(clientData);
         bookKeeper = new BookKeeper(new InvoiceFactory());
-        product = new Product(Id.generate(),new Money(BigDecimal.TEN),"Pasta",ProductType.FOOD);
+        product = new ProductBuilder().withId(Id.generate()).withPrice(new Money(BigDecimal.TEN)).withName("Pasta").withProductType(ProductType.FOOD).build();
         productData = product.generateSnapshot();
         when(taxPolicy.calculateTax(any(ProductType.class),any(Money.class))).thenReturn(new Tax(new Money(BigDecimal.TEN),"tax"));
         requestItem = new RequestItem(productData,4,new Money(BigDecimal.TEN));
