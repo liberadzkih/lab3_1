@@ -18,8 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) //daje mozliwosc korzystania z mockito -> umozliwia tworzenie dublerow
 class BookKeeperTest {
@@ -84,5 +83,25 @@ class BookKeeperTest {
 
         invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
         assertThat(invoice.getItems(),hasSize(100));
+    }
+
+    //2 kolejne testy zachowania
+
+    @Test
+    public void invoiceRequestWithTwentyPositionShouldInvokeCalculateTaxMethodTwentyTimes(){
+        for(int i=0;i<20;i++)
+            invoiceRequest.add(requestItem);
+
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        verify(taxPolicy,times(20)).calculateTax(requestItem.getProductData().getType(),requestItem.getProductData().getPrice());
+    }
+
+    @Test
+    public void invoiceRequestWithOneHundredPositionShouldInvokeCalculateTaxMethodOneHundredTimes(){
+        for(int i=0;i<100;i++)
+            invoiceRequest.add(requestItem);
+
+        invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+        verify(taxPolicy,times(100)).calculateTax(requestItem.getProductData().getType(),requestItem.getProductData().getPrice());
     }
 }
