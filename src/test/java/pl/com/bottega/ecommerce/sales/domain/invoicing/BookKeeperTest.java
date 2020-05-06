@@ -20,6 +20,7 @@ public class BookKeeperTest {
     private InvoiceRequest invoiceRequest;
     private TaxPolicy taxPolicy;
     private ProductBuilder productBuilder;
+    private RequestItemBuilder requestItemBuilder;
 
     @BeforeEach
     public void init() {
@@ -29,6 +30,7 @@ public class BookKeeperTest {
         Mockito.when(taxPolicy.calculateTax(any(ProductType.class),
                 any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
         productBuilder = new ProductBuilder();
+        requestItemBuilder = new RequestItemBuilder();
     }
 
     //State tests
@@ -36,7 +38,7 @@ public class BookKeeperTest {
     @Test
     public void shouldReturnInvoiceWithOneElement() {
         Product product = productBuilder.build();
-        RequestItem requestItem = new RequestItem(product.generateSnapshot(),1, Money.ZERO);
+        RequestItem requestItem = requestItemBuilder.withProductData(product.generateSnapshot()).build();
         invoiceRequest.add(requestItem);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -52,15 +54,18 @@ public class BookKeeperTest {
     @Test
     public void shouldReturnInvoiceWithThreeElements() {
         Product product1 = productBuilder.withName("bike").withProductType(ProductType.STANDARD).build();
-        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, Money.ZERO);
+        RequestItem requestItem1 = requestItemBuilder.withProductData(product1.generateSnapshot()).withQuantity(5)
+                                    .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem1);
 
         Product product2 = productBuilder.withName("vitamin").withProductType(ProductType.DRUG).build();
-        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, Money.ZERO);
+        RequestItem requestItem2 = requestItemBuilder.withProductData(product2.generateSnapshot()).withQuantity(3)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem2);
 
         Product product3 = productBuilder.withName("break").withProductType(ProductType.FOOD).build();
-        RequestItem requestItem3 = new RequestItem(product3.generateSnapshot(),2, Money.ZERO);
+        RequestItem requestItem3 = requestItemBuilder.withProductData(product3.generateSnapshot()).withQuantity(7)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem3);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -72,11 +77,13 @@ public class BookKeeperTest {
     @Test
     public void calculateTaxShouldBeCalledTwoTimes() {
         Product product1 = productBuilder.withName("bike").withProductType(ProductType.STANDARD).build();
-        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, new Money(10));
+        RequestItem requestItem1 = requestItemBuilder.withProductData(product1.generateSnapshot()).withQuantity(5)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem1);
 
         Product product2 = productBuilder.withName("vitamin").withProductType(ProductType.DRUG).build();
-        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, new Money(13));
+        RequestItem requestItem2 = requestItemBuilder.withProductData(product2.generateSnapshot()).withQuantity(3)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem2);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -94,15 +101,18 @@ public class BookKeeperTest {
     @Test
     public void calculateTaxShouldBeCalledThreeTimes() {
         Product product1 = productBuilder.withName("bike").withProductType(ProductType.STANDARD).build();
-        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, Money.ZERO);
+        RequestItem requestItem1 = requestItemBuilder.withProductData(product1.generateSnapshot()).withQuantity(5)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem1);
 
         Product product2 = productBuilder.withName("vitamin").withProductType(ProductType.DRUG).build();
-        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, Money.ZERO);
+        RequestItem requestItem2 = requestItemBuilder.withProductData(product2.generateSnapshot()).withQuantity(3)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem2);
 
         Product product3 = productBuilder.withName("break").withProductType(ProductType.FOOD).build();
-        RequestItem requestItem3 = new RequestItem(product3.generateSnapshot(),2, Money.ZERO);
+        RequestItem requestItem3 = requestItemBuilder.withProductData(product3.generateSnapshot()).withQuantity(7)
+                .withTotalCost(Money.ZERO).build();
         invoiceRequest.add(requestItem3);
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
