@@ -82,4 +82,11 @@ public class BookKeeperTest {
         verify(taxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
+    @Test
+    public void calculateTaxShouldNotBeCalled() {
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(0)).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
 }
