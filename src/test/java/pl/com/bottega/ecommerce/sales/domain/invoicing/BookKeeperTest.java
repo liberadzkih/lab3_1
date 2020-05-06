@@ -43,4 +43,22 @@ public class BookKeeperTest {
         Assertions.assertEquals(0, invoice.getItems().size());
     }
 
+    @Test
+    public void shouldReturnInvoiceWithThreeElements() {
+        Product product1 = new Product(Id.generate(),Money.ZERO,"bike",ProductType.STANDARD);
+        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, Money.ZERO);
+        invoiceRequest.add(requestItem1);
+
+        Product product2 = new Product(Id.generate(),Money.ZERO,"vitamin",ProductType.DRUG);
+        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, Money.ZERO);
+        invoiceRequest.add(requestItem2);
+
+        Product product3 = new Product(Id.generate(),Money.ZERO,"bread",ProductType.FOOD);
+        RequestItem requestItem3 = new RequestItem(product3.generateSnapshot(),2, Money.ZERO);
+        invoiceRequest.add(requestItem3);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Assertions.assertEquals(3, invoice.getItems().size());
+    }
+
 }
