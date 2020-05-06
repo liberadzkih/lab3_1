@@ -11,6 +11,8 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class BookKeeperTest {
 
@@ -26,6 +28,8 @@ public class BookKeeperTest {
         Mockito.when(taxPolicy.calculateTax(any(ProductType.class),
                 any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
     }
+
+    //State tests
 
     @Test
     public void shouldReturnInvoiceWithOneElement() {
@@ -59,6 +63,23 @@ public class BookKeeperTest {
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         Assertions.assertEquals(3, invoice.getItems().size());
+    }
+
+    //Behaviour Tests
+
+    @Test
+    public void calculateTaxShouldBeCalledTwoTimes() {
+        Product product1 = new Product(Id.generate(),Money.ZERO,"bike",ProductType.STANDARD);
+        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, new Money(10));
+        invoiceRequest.add(requestItem1);
+
+        Product product2 = new Product(Id.generate(),Money.ZERO,"vitamin",ProductType.DRUG);
+        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, new Money(13));
+        invoiceRequest.add(requestItem2);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
 }
