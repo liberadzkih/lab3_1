@@ -33,8 +33,14 @@ public class BookKeeperTest {
         RequestItem requestItem = new RequestItem(product.generateSnapshot(),1, Money.ZERO);
         invoiceRequest.add(requestItem);
 
-        Invoice invoice =bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         Assertions.assertEquals(1, invoice.getItems().size());
+    }
+
+    @Test
+    public void shouldReturnInvoiceWithoutElements() {
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Assertions.assertEquals(0, invoice.getItems().size());
     }
 
 }
