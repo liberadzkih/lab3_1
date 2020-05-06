@@ -19,6 +19,7 @@ public class BookKeeperTest {
     private BookKeeper bookKeeper;
     private InvoiceRequest invoiceRequest;
     private TaxPolicy taxPolicy;
+    private ProductBuilder productBuilder;
 
     @BeforeEach
     public void init() {
@@ -27,13 +28,14 @@ public class BookKeeperTest {
         taxPolicy = Mockito.mock(TaxPolicy.class);
         Mockito.when(taxPolicy.calculateTax(any(ProductType.class),
                 any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
+        productBuilder = new ProductBuilder();
     }
 
     //State tests
 
     @Test
     public void shouldReturnInvoiceWithOneElement() {
-        Product product = new Product(Id.generate(),Money.ZERO,"name",ProductType.STANDARD);
+        Product product = productBuilder.build();
         RequestItem requestItem = new RequestItem(product.generateSnapshot(),1, Money.ZERO);
         invoiceRequest.add(requestItem);
 
@@ -49,15 +51,15 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnInvoiceWithThreeElements() {
-        Product product1 = new Product(Id.generate(),Money.ZERO,"bike",ProductType.STANDARD);
+        Product product1 = productBuilder.withName("bike").withProductType(ProductType.STANDARD).build();
         RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, Money.ZERO);
         invoiceRequest.add(requestItem1);
 
-        Product product2 = new Product(Id.generate(),Money.ZERO,"vitamin",ProductType.DRUG);
+        Product product2 = productBuilder.withName("vitamin").withProductType(ProductType.DRUG).build();
         RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, Money.ZERO);
         invoiceRequest.add(requestItem2);
 
-        Product product3 = new Product(Id.generate(),Money.ZERO,"bread",ProductType.FOOD);
+        Product product3 = productBuilder.withName("break").withProductType(ProductType.FOOD).build();
         RequestItem requestItem3 = new RequestItem(product3.generateSnapshot(),2, Money.ZERO);
         invoiceRequest.add(requestItem3);
 
@@ -69,11 +71,11 @@ public class BookKeeperTest {
 
     @Test
     public void calculateTaxShouldBeCalledTwoTimes() {
-        Product product1 = new Product(Id.generate(),Money.ZERO,"bike",ProductType.STANDARD);
+        Product product1 = productBuilder.withName("bike").withProductType(ProductType.STANDARD).build();
         RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, new Money(10));
         invoiceRequest.add(requestItem1);
 
-        Product product2 = new Product(Id.generate(),Money.ZERO,"vitamin",ProductType.DRUG);
+        Product product2 = productBuilder.withName("vitamin").withProductType(ProductType.DRUG).build();
         RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, new Money(13));
         invoiceRequest.add(requestItem2);
 
@@ -91,15 +93,15 @@ public class BookKeeperTest {
 
     @Test
     public void calculateTaxShouldBeCalledThreeTimes() {
-        Product product1 = new Product(Id.generate(),Money.ZERO,"bike",ProductType.STANDARD);
-        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, new Money(10));
+        Product product1 = productBuilder.withName("bike").withProductType(ProductType.STANDARD).build();
+        RequestItem requestItem1 = new RequestItem(product1.generateSnapshot(),5, Money.ZERO);
         invoiceRequest.add(requestItem1);
 
-        Product product2 = new Product(Id.generate(),Money.ZERO,"vitamin",ProductType.DRUG);
-        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, new Money(13));
+        Product product2 = productBuilder.withName("vitamin").withProductType(ProductType.DRUG).build();
+        RequestItem requestItem2 = new RequestItem(product2.generateSnapshot(),1, Money.ZERO);
         invoiceRequest.add(requestItem2);
 
-        Product product3 = new Product(Id.generate(),Money.ZERO,"bread",ProductType.FOOD);
+        Product product3 = productBuilder.withName("break").withProductType(ProductType.FOOD).build();
         RequestItem requestItem3 = new RequestItem(product3.generateSnapshot(),2, Money.ZERO);
         invoiceRequest.add(requestItem3);
 
