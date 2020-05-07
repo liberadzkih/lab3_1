@@ -89,4 +89,26 @@ public class BookKeeperTest {
         verify(taxMock, times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
+    @Test
+    public void issuance_Req0ElementsBehaviour() {
+        //when
+        bookKeeper.issuance(invoiceRequest, taxMock);
+
+        //then
+        verify(taxMock, never()).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
+    @Test
+    public void issuance_Req1ElementsBehaviour() {
+        //given
+        RequestItem requestItem1 = new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE));
+        invoiceRequest.add(requestItem1);
+
+        //when
+        bookKeeper.issuance(invoiceRequest, taxMock);
+
+        //then
+        verify(taxMock).calculateTax(requestItem1.getProductData().getType(), requestItem1.getProductData().getPrice());
+        verify(taxMock, times(1)).calculateTax(any(ProductType.class), any(Money.class));
+    }
 }
