@@ -91,4 +91,26 @@ public class BookKeeperTest {
         verify(mockTaxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
 
     }
+
+    @Test
+    public void issuance_noInvocation() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+
+        bookKeeper.issuance(invoiceRequest, mockTaxPolicy);
+        verify(mockTaxPolicy, never()).calculateTax(any(ProductType.class), any(Money.class));
+    }
+    @Test
+    public void issuance_moreThanThreeInvocations() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+        for(int i=1;i<=5;i++) {
+            Money money = new Money(BigDecimal.ONE);
+            RequestItem requestItem = new RequestItem(new Product(Id.generate(), money, "Item"+i,
+                    ProductType.FOOD).generateSnapshot(), new Random().nextInt(15), money);
+            invoiceRequest.add(requestItem);
+        }
+        bookKeeper.issuance(invoiceRequest, mockTaxPolicy);
+        verify(mockTaxPolicy, atLeast(3)).calculateTax(any(ProductType.class), any(Money.class));
+    }
 }
