@@ -73,7 +73,7 @@ public class BookKeeperTest {
 
 
     @Test
-    public void issuance_Req2ElementsBehaviour() {
+    public void issuance_2Invocations() {
         //given
         RequestItem requestItem1 = new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE));
         RequestItem requestItem2 = new RequestItem(product.generateSnapshot(), 12, new Money(BigDecimal.TEN));
@@ -90,7 +90,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void issuance_Req0ElementsBehaviour() {
+    public void issuance_0Invocations() {
         //when
         bookKeeper.issuance(invoiceRequest, taxMock);
 
@@ -99,7 +99,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void issuance_Req1ElementsBehaviour() {
+    public void issuance_1Invocation() {
         //given
         RequestItem requestItem1 = new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE));
         invoiceRequest.add(requestItem1);
