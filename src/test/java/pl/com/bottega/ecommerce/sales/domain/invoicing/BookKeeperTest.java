@@ -11,6 +11,7 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.math.BigDecimal;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -29,7 +30,7 @@ public class BookKeeperTest {
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(mockTaxPolicy.calculateTax(any(), any())).thenReturn(new Tax(new Money(BigDecimal.ONE), "Tax"));
     }
-
+    //state tests
     @Test
     public void issuance_oneItem() {
         ClientData clientData = new ClientData(Id.generate(), "Client");
@@ -43,7 +44,31 @@ public class BookKeeperTest {
         Invoice invoice = bookKeeper.issuance(invoiceRequest, mockTaxPolicy);
         assertEquals(1, invoice.getItems().size());
     }
+    @Test
+    public void issuance_zeroItems() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
 
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, mockTaxPolicy);
+        assertEquals(0, invoice.getItems().size());
+    }
+
+    @Test
+    public void issuance_fiveItems() {
+        ClientData clientData = new ClientData(Id.generate(), "Client");
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
+
+        for(int i=1;i<=5;i++) {
+            Money money = new Money(BigDecimal.ONE);
+            RequestItem requestItem = new RequestItem(new Product(Id.generate(), money, "Item"+i,
+                    ProductType.FOOD).generateSnapshot(), new Random().nextInt(15), money);
+            invoiceRequest.add(requestItem);
+        }
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, mockTaxPolicy);
+        assertEquals(5, invoice.getItems().size());
+    }
+
+    //behaviour tests
     @Test
     public void issuance_twoItems() {
         ClientData clientData = new ClientData(Id.generate(), "Client");
