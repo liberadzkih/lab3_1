@@ -30,7 +30,7 @@ public class BookKeeperTest {
     public void setUp() {
         bookKeeper = new BookKeeper(new InvoiceFactory());
         invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "test"));
-        product = new Product(Id.generate(), new Money(BigDecimal.ONE), "testProduct", ProductType.DRUG);
+        product = new ProductBuilder().setAggregateId(Id.generate()).setPrice(new Money(BigDecimal.ONE)).setName("testProduct").setProductType(ProductType.DRUG).createProduct();
         taxMock = mock(TaxPolicy.class);
         when(taxMock.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(BigDecimal.ONE), "tax"));
     }
@@ -38,7 +38,7 @@ public class BookKeeperTest {
     @Test
     public void issuance_Req1Element() {
         //given
-        invoiceRequest.add(new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE)));
+        invoiceRequest.add(new RequestItemBuilder().setProductData(product.generateSnapshot()).setQuantity(45).setTotalCost(new Money(BigDecimal.ONE)).createRequestItem());
 
         //when
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxMock);
@@ -61,7 +61,7 @@ public class BookKeeperTest {
         int howManyElements = 13;
         //given
         for (int i = 0; i < howManyElements; i++) {
-            invoiceRequest.add(new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE)));
+            invoiceRequest.add(new RequestItemBuilder().setProductData(product.generateSnapshot()).setQuantity(45).setTotalCost(new Money(BigDecimal.ONE)).createRequestItem());
         }
 
         //when
@@ -75,8 +75,8 @@ public class BookKeeperTest {
     @Test
     public void issuance_2Invocations() {
         //given
-        RequestItem requestItem1 = new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE));
-        RequestItem requestItem2 = new RequestItem(product.generateSnapshot(), 12, new Money(BigDecimal.TEN));
+        RequestItem requestItem1 = new RequestItemBuilder().setProductData(product.generateSnapshot()).setQuantity(45).setTotalCost(new Money(BigDecimal.ONE)).createRequestItem();
+        RequestItem requestItem2 = new RequestItemBuilder().setProductData(product.generateSnapshot()).setQuantity(12).setTotalCost(new Money(BigDecimal.TEN)).createRequestItem();
         invoiceRequest.add(requestItem1);
         invoiceRequest.add(requestItem2);
 
@@ -101,7 +101,7 @@ public class BookKeeperTest {
     @Test
     public void issuance_1Invocation() {
         //given
-        RequestItem requestItem1 = new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE));
+        RequestItem requestItem1 = new RequestItemBuilder().setProductData(product.generateSnapshot()).setQuantity(45).setTotalCost(new Money(BigDecimal.ONE)).createRequestItem();
         invoiceRequest.add(requestItem1);
 
         //when
