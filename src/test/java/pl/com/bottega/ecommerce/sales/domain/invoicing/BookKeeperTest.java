@@ -1,17 +1,22 @@
 package pl.com.bottega.ecommerce.sales.domain.invoicing;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public class BookKeeperTest {
     TaxPolicy taxPolicy;
@@ -41,6 +46,24 @@ public class BookKeeperTest {
     }
 
     @Test
+    public void shouldReturnEmptyInvoiceWhenNoItemsGiven() {
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(invoice.getItems().size(), is(0));
+    }
+
+    @Test
+    public void shouldReturnInvoiceWithFiveItemsWhenGivenFiveItems() {
+        final int numberOfElements = 5;
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        for (int i = 0; i < numberOfElements; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(invoice.getItems().size(), is(numberOfElements));
+    }
+
+    @Test
     public void shouldInvokeCalculateTaxTwoTimesWhenTwoItems() {
         when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
         invoiceRequest.add(requestItem);
@@ -49,4 +72,20 @@ public class BookKeeperTest {
         verify(taxPolicy, times(2)).calculateTax(any(), any());
     }
 
+    @Test
+    public void shouldNotInvokeCalculateTaxWhenNoItems() {
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, never()).calculateTax(any(), any());
+    }
+
+    @Test
+    public void shouldInvokeCalculateTaxFiveTimesWhenGivenFiveItems() {
+        final int numberOfElements = 5;
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
+        for (int i = 0; i < numberOfElements; i++) {
+            invoiceRequest.add(requestItem);
+        }
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(numberOfElements)).calculateTax(any(), any());
+    }
 }
