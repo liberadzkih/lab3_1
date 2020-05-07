@@ -35,11 +35,11 @@ public class BookKeeperTest {
         requestItem = new RequestItem(product.generateSnapshot(), 1, Money.ZERO);
         invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "client"));
         bookKeeper = new BookKeeper(new InvoiceFactory());
+        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
     }
 
     @Test
     public void shouldReturnInvoiceWithOneItemWhenGivenOneItem() {
-        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
         invoiceRequest.add(requestItem);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(invoice.getItems().size(), is(1));
@@ -47,7 +47,6 @@ public class BookKeeperTest {
 
     @Test
     public void shouldReturnEmptyInvoiceWhenNoItemsGiven() {
-        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(invoice.getItems().size(), is(0));
     }
@@ -55,7 +54,6 @@ public class BookKeeperTest {
     @Test
     public void shouldReturnInvoiceWithFiveItemsWhenGivenFiveItems() {
         final int numberOfElements = 5;
-        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
         for (int i = 0; i < numberOfElements; i++) {
             invoiceRequest.add(requestItem);
         }
@@ -65,7 +63,6 @@ public class BookKeeperTest {
 
     @Test
     public void shouldInvokeCalculateTaxTwoTimesWhenTwoItems() {
-        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
         invoiceRequest.add(requestItem);
         invoiceRequest.add(requestItem);
         bookKeeper.issuance(invoiceRequest, taxPolicy);
@@ -81,7 +78,6 @@ public class BookKeeperTest {
     @Test
     public void shouldInvokeCalculateTaxFiveTimesWhenGivenFiveItems() {
         final int numberOfElements = 5;
-        when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
         for (int i = 0; i < numberOfElements; i++) {
             invoiceRequest.add(requestItem);
         }
