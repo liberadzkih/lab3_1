@@ -47,9 +47,33 @@ public class BookKeeperTest {
         assertThat(invoice.getItems(), hasSize(1));
     }
 
+    @Test
+    public void issuance_Req0Elements() {
+        //when
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxMock);
+
+        //then
+        assertThat(invoice.getItems(), hasSize(0));
+    }
 
     @Test
-    public void issuance_Req2Elements() {
+    public void issuance_ReqMoreThan1Element() {
+        int howManyElements = 13;
+        //given
+        for (int i = 0; i < howManyElements; i++) {
+            invoiceRequest.add(new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE)));
+        }
+
+        //when
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxMock);
+
+        //then
+        assertThat(invoice.getItems(), hasSize(howManyElements));
+    }
+
+
+    @Test
+    public void issuance_Req2ElementsBehaviour() {
         //given
         RequestItem requestItem1 = new RequestItem(product.generateSnapshot(), 45, new Money(BigDecimal.ONE));
         RequestItem requestItem2 = new RequestItem(product.generateSnapshot(), 12, new Money(BigDecimal.TEN));
@@ -64,4 +88,5 @@ public class BookKeeperTest {
         verify(taxMock).calculateTax(requestItem2.getProductData().getType(), requestItem2.getProductData().getPrice());
         verify(taxMock, times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
+
 }
