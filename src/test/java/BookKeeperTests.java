@@ -79,4 +79,29 @@ public class BookKeeperTests {
         verify(this.taxMock).calculateTax(secondItem.getProductData().getType(), this.money);
         verify(this.taxMock, times(2)).calculateTax(any(), any());
     }
+
+    @Test
+    public void invoiceWithoutItem_calculateTaxCalledZeroTimes() {
+        ClientData clientData = new ClientData(Id.generate(), "Example");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+
+        this.bookKeeper.issuance(request, this.taxMock);
+
+        verify(this.taxMock, times(0)).calculateTax(any(), any());
+    }
+
+    @Test
+    public void invoiceWithTenItems_calculateTaxCalledTenTimes() {
+        ClientData clientData = new ClientData(Id.generate(), "Example");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+
+        IntStream.range(0, 10).forEach(index ->{
+            RequestItem item = new RequestItem(new Product(Id.generate(), this.money, String.valueOf(index), ProductType.FOOD).generateSnapshot(), 1, this.money);
+            request.add(item);
+        });
+
+        this.bookKeeper.issuance(request, this.taxMock);
+
+        verify(this.taxMock, times(10)).calculateTax(any(), any());
+    }
 }
