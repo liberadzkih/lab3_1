@@ -4,6 +4,7 @@ import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.invoicing.*;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
@@ -29,12 +30,16 @@ public class BookKeeperTests {
         when(this.taxMock.calculateTax(any(), any())).thenReturn(new Tax(this.money, "Tax"));
     }
 
+    private ProductData createProduct(String name, ProductType productType) {
+        return new Product(Id.generate(), this.money, name, productType).generateSnapshot();
+    }
+
     //===STATE TESTS===
     @Test
     public void invoiceWithSingleItem_returnInvoiceWithSingleItem() {
         ClientData clientData = new ClientData(Id.generate(), "Example");
         InvoiceRequest request = new InvoiceRequest(clientData);
-        request.add(new RequestItem(new Product(Id.generate(), this.money, "Single item", ProductType.DRUG).generateSnapshot(), 1, this.money));
+        request.add(new RequestItem(createProduct("Single item", ProductType.DRUG), 1, this.money));
         Invoice invoice = this.bookKeeper.issuance(request, this.taxMock);
 
         assertEquals(1, invoice.getItems().size());
@@ -54,7 +59,7 @@ public class BookKeeperTests {
         ClientData clientData = new ClientData(Id.generate(), "Example");
         InvoiceRequest request = new InvoiceRequest(clientData);
         IntStream.range(0, 10).forEach(index -> {
-            request.add(new RequestItem(new Product(Id.generate(), this.money, String.valueOf(index), ProductType.DRUG).generateSnapshot(), 1, this.money));
+            request.add(new RequestItem(createProduct(String.valueOf(index), ProductType.DRUG), 1, this.money));
         });
         Invoice invoice = this.bookKeeper.issuance(request, this.taxMock);
 
@@ -67,8 +72,8 @@ public class BookKeeperTests {
         ClientData clientData = new ClientData(Id.generate(), "Example");
         InvoiceRequest request = new InvoiceRequest(clientData);
 
-        RequestItem firstItem = new RequestItem(new Product(Id.generate(), this.money, "First item", ProductType.FOOD).generateSnapshot(), 1, this.money);
-        RequestItem secondItem = new RequestItem(new Product(Id.generate(), this.money, "Second item", ProductType.STANDARD).generateSnapshot(), 1, this.money);
+        RequestItem firstItem = new RequestItem(createProduct("First item", ProductType.FOOD), 1, this.money);
+        RequestItem secondItem = new RequestItem(createProduct("Second item", ProductType.STANDARD), 1, this.money);
 
         request.add(firstItem);
         request.add(secondItem);
@@ -95,8 +100,8 @@ public class BookKeeperTests {
         ClientData clientData = new ClientData(Id.generate(), "Example");
         InvoiceRequest request = new InvoiceRequest(clientData);
 
-        IntStream.range(0, 10).forEach(index ->{
-            RequestItem item = new RequestItem(new Product(Id.generate(), this.money, String.valueOf(index), ProductType.FOOD).generateSnapshot(), 1, this.money);
+        IntStream.range(0, 10).forEach(index -> {
+            RequestItem item = new RequestItem(createProduct(String.valueOf(index), ProductType.FOOD), 1, this.money);
             request.add(item);
         });
 
