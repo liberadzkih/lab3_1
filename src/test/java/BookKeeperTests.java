@@ -7,6 +7,8 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
+import java.util.stream.IntStream;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -37,6 +39,28 @@ public class BookKeeperTests {
 
         assertEquals(1, invoice.getItems().size());
     }
+
+    @Test
+    public void invoiceWithoutItem_returnInvoiceWithoutAnyItem() {
+        ClientData clientData = new ClientData(Id.generate(), "Example");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+        Invoice invoice = this.bookKeeper.issuance(request, this.taxMock);
+
+        assertEquals(0, invoice.getItems().size());
+    }
+
+    @Test
+    public void invoiceWithTenItems_returnInvoiceWithTenItems() {
+        ClientData clientData = new ClientData(Id.generate(), "Example");
+        InvoiceRequest request = new InvoiceRequest(clientData);
+        IntStream.range(0, 10).forEach(index -> {
+            request.add(new RequestItem(new Product(Id.generate(), this.money, String.valueOf(index), ProductType.DRUG).generateSnapshot(), 1, this.money));
+        });
+        Invoice invoice = this.bookKeeper.issuance(request, this.taxMock);
+
+        assertEquals(10, invoice.getItems().size());
+    }
+
     //===BEHAVIOUR TESTS===
     @Test
     public void invoiceWithTwoItems_calculateTaxCalledTwice() {
