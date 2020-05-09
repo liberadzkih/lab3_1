@@ -15,7 +15,6 @@ import org.junit.Test;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
-import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public class BookKeeperTest {
@@ -31,7 +30,7 @@ public class BookKeeperTest {
     public void setUp() {
         taxPolicy = mock(TaxPolicy.class);
         tax = new Tax(Money.ZERO, "tax");
-        product = new Product(Id.generate(), Money.ZERO, "product", ProductType.STANDARD);
+        product = new ProductBuilder().build();
         requestItem = new RequestItem(product.generateSnapshot(), 1, Money.ZERO);
         invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "client"));
         bookKeeper = new BookKeeper(new InvoiceFactory());
