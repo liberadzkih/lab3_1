@@ -30,8 +30,7 @@ public class BookKeeperTest {
     public void setUp() {
         taxPolicy = mock(TaxPolicy.class);
         tax = new Tax(Money.ZERO, "tax");
-        product = new ProductBuilder().build();
-        requestItem = new RequestItem(product.generateSnapshot(), 1, Money.ZERO);
+        requestItem = new RequestItemBuilder().build();
         invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "client"));
         bookKeeper = new BookKeeper(new InvoiceFactory());
         when(taxPolicy.calculateTax(any(), any())).thenReturn(tax);
@@ -70,7 +69,7 @@ public class BookKeeperTest {
 
     @Test
     public void shouldNotInvokeCalculateTaxWhenNoItems() {
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(taxPolicy, never()).calculateTax(any(), any());
     }
 
@@ -80,7 +79,7 @@ public class BookKeeperTest {
         for (int i = 0; i < numberOfElements; i++) {
             invoiceRequest.add(requestItem);
         }
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
         verify(taxPolicy, times(numberOfElements)).calculateTax(any(), any());
     }
 }
