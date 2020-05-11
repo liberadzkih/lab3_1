@@ -31,4 +31,27 @@ public class BookKeeperTest {
         product = new Product(Id.generate(), new Money(BigDecimal.ONE), "testProduct", ProductType.FOOD);
         when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(BigDecimal.ONE), "testTax"));
     }
+
+    @Test
+    public void testOneInvoice() {
+        invoiceRequest.add(new RequestItem(product.generateSnapshot(), 12, new Money(BigDecimal.ONE)));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        assertThat(invoice.getItems(), hasSize(1));
+    }
+
+    @Test
+    public void testTwoInvoiceCalls() {
+        RequestItem requestItemOne = new RequestItem(product.generateSnapshot(), 21, new Money(BigDecimal.ONE));
+        RequestItem requestItemTwo = new RequestItem(product.generateSnapshot(), 22, new Money(BigDecimal.ROUND_CEILING));
+
+        invoiceRequest.add(requestItemOne);
+        invoiceRequest.add(requestItemTwo);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+
+        verify(taxPolicyMock).calculateTax(requestItemOne.getProductData().getType(), requestItemOne.getProductData().getPrice());
+        verify(taxPolicyMock).calculateTax(requestItemTwo.getProductData().getType(), requestItemTwo.getProductData().getPrice());
+
+        verify(taxPolicyMock, times(2)).calculateTax(any(ProductType.class), any(Money.class));
+    }
 }
