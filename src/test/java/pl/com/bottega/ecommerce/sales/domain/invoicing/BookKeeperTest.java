@@ -28,7 +28,7 @@ public class BookKeeperTest {
         taxPolicyMock = mock(TaxPolicy.class);
         bookKeeper = new BookKeeper(new InvoiceFactory());
         invoiceRequest = new InvoiceRequest(new ClientData(Id.generate(), "testClient"));
-        product = new Product(Id.generate(), new Money(BigDecimal.ONE), "testProduct", ProductType.FOOD);
+        product = new ProductBuilder().build();
         when(taxPolicyMock.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(BigDecimal.ONE), "testTax"));
     }
 
