@@ -46,14 +46,14 @@ public class BookKeeperTest {
 
     @Test
     public void testOneInvoice() {
-        invoiceRequest.add(new RequestItem(product.generateSnapshot(), 12, new Money(BigDecimal.ONE)));
+        invoiceRequest.add(new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(12).withTotalCost(new Money(BigDecimal.ONE)).build());
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         assertThat(invoice.getItems(), hasSize(1));
     }
 
     @Test
     public void testOneInvoiceBehaviour() {
-        RequestItem requestItem = new RequestItem(product.generateSnapshot(), 21, new Money(BigDecimal.ONE));
+        RequestItem requestItem = new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(21).withTotalCost(new Money(BigDecimal.ONE)).build();
 
         invoiceRequest.add(requestItem);
 
@@ -65,8 +65,8 @@ public class BookKeeperTest {
 
     @Test
     public void testTwoInvoiceCallsBehaviour() {
-        RequestItem requestItemOne = new RequestItem(product.generateSnapshot(), 21, new Money(BigDecimal.ONE));
-        RequestItem requestItemTwo = new RequestItem(product.generateSnapshot(), 22, new Money(BigDecimal.ROUND_CEILING));
+        RequestItem requestItemOne = new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(21).withTotalCost(new Money(BigDecimal.ONE)).build();
+        RequestItem requestItemTwo = new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(22).withTotalCost(new Money(BigDecimal.ROUND_CEILING)).build();;
 
         invoiceRequest.add(requestItemOne);
         invoiceRequest.add(requestItemTwo);
@@ -81,8 +81,8 @@ public class BookKeeperTest {
 
     @Test
     public void testTwoInvoice() {
-        invoiceRequest.add(new RequestItem(product.generateSnapshot(), 12, new Money(BigDecimal.ONE)));
-        invoiceRequest.add(new RequestItem(product.generateSnapshot(), 13, new Money(BigDecimal.ROUND_CEILING)));
+        invoiceRequest.add(new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(12).withTotalCost(new Money(BigDecimal.ONE)).build());
+        invoiceRequest.add(new RequestItemBuilder().withProductData(product.generateSnapshot()).withQuantity(13).withTotalCost(new Money(BigDecimal.ROUND_CEILING)).build());
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         assertThat(invoice.getItems(), hasSize(2));
     }
