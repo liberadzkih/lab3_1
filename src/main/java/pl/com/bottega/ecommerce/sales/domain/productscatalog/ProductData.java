@@ -15,6 +15,7 @@
  */
 package pl.com.bottega.ecommerce.sales.domain.productscatalog;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 
@@ -25,15 +26,16 @@ import pl.com.bottega.ecommerce.sharedkernel.Money;
 public class ProductData {
 	private Id productId;
 	private Money price;
-	
 	private String name;
-	
 	private Date snapshotDate;
-		
 	private ProductType type;
 
-	
-	ProductData(Id productId, Money price, String name, ProductType type, 
+
+	private ProductData(){
+
+	}
+
+	ProductData(Id productId, Money price, String name, ProductType type,
 			Date snapshotDate) {
 		this.productId = productId;
 		this.price = price;
@@ -57,7 +59,7 @@ public class ProductData {
 	public Date getSnapshotDate() {
 		return snapshotDate;
 	}
-	
+
 	public ProductType getType() {
 		return type;
 	}
@@ -69,7 +71,7 @@ public class ProductData {
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((price == null) ? 0 : price.hashCode());
 		result = prime * result
-				+ ((productId == null) ? 0 : productId.hashCode());
+		         + ((productId == null) ? 0 : productId.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -102,6 +104,52 @@ public class ProductData {
 			return false;
 		return true;
 	}
-	
+
+	public static ProductDataBuilder buildCustomProductData() {
+		return new ProductDataBuilder();
+	}
+
+	public static ProductData buildSimpleProductDataForTests() {
+		return buildCustomProductData().build();
+	}
+
+	public static class ProductDataBuilder{
+
+		private ProductData productData = new ProductData();
+
+		public ProductDataBuilder() {
+			productData.productId = Id.generate();
+			productData.snapshotDate = new Date();
+			productData.type = ProductType.STANDARD;
+			productData.name = "";
+			productData.price = new Money(BigDecimal.ZERO);
+		}
+
+		public ProductDataBuilder withId(Id id){
+			productData.productId = id;
+			return this;
+		}
+		public ProductDataBuilder withPrice(Money price){
+			productData.price = price;
+			return this;
+		}
+		public ProductDataBuilder withName(String name){
+			productData.name = name;
+			return this;
+		}
+		public ProductDataBuilder withType(ProductType type){
+			productData.type = type;
+			return this;
+		}
+		public ProductDataBuilder orderedIn(Date snapshotDate){
+			productData.snapshotDate = snapshotDate;
+			return this;
+		}
+
+		public ProductData build() {
+			return productData;
+		}
+	}
+
 
 }
