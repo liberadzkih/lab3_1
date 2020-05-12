@@ -134,4 +134,32 @@ class BookKeeperTest {
         }
 
     }
+
+    @Test
+    public void invoiceRequestShouldCallRequestItemGetTotalCostTwoTimesTest(){
+
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+        clientData = new ClientData(Id.generate(),"client");
+        invoiceRequest = new InvoiceRequest(clientData);
+
+        Money money1 = new Money(3);
+
+        TaxPolicy taxPolicy1 = mock(TaxPolicy.class);
+        when(taxPolicy1.calculateTax(ProductType.STANDARD, money1)).thenReturn(new Tax(new Money(0.23),"23%"));
+
+        ProductData productData1 = mock(ProductData.class);
+        when(productData1.getType()).thenReturn(ProductType.STANDARD);
+
+        RequestItem requestItem1 = mock(RequestItem.class);
+        when(requestItem1.getTotalCost()).thenReturn(new Money(3));
+        when(requestItem1.getProductData()).thenReturn(productData1);
+        when(requestItem1.getQuantity()).thenReturn(5);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem1);
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy1);
+
+        verify(requestItem1,times(2)).getTotalCost();
+
+    }
 }
