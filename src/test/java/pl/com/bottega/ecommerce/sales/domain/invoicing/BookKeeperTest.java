@@ -73,8 +73,21 @@ class BookKeeperTest {
 
         Mockito.verify(taxPolicy1, times(1)).calculateTax(ProductType.STANDARD, money1);
         Mockito.verify(taxPolicy1, times(1)).calculateTax(ProductType.FOOD, money2);
+    }
 
+    @Test
+    public void invoiceRequestWithNoPositionsShouldReturnInvoiceWithZeroPositionsTest() {
 
+        bookKeeper = new BookKeeper(new InvoiceFactory());
+        clientData = new ClientData(Id.generate(),"client");
+        invoiceRequest = new InvoiceRequest(clientData);
+
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(ProductType.STANDARD, new Money(3))).thenReturn(new Tax(new Money(0.23),"23%"));
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest,taxPolicy);
+
+        Assertions.assertEquals(0,invoice.getItems().size());
 
     }
 }
