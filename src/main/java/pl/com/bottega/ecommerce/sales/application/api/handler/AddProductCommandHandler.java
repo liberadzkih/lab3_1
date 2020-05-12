@@ -26,37 +26,45 @@ import pl.com.bottega.ecommerce.sales.domain.reservation.Reservation;
 import pl.com.bottega.ecommerce.sales.domain.reservation.ReservationRepository;
 import pl.com.bottega.ecommerce.system.application.SystemContext;
 
-public class AddProductCommandHandler implements CommandHandler<AddProductCommand, Void> {
 
-    private ReservationRepository reservationRepository;
 
-    private ProductRepository productRepository;
+public class AddProductCommandHandler implements CommandHandler<AddProductCommand, Void>{
 
-    private SuggestionService suggestionService;
 
-    private ClientRepository clientRepository;
+	private ReservationRepository reservationRepository;
+	
 
-    private SystemContext systemContext;
+	private ProductRepository productRepository;
+	
 
-    @Override public Void handle(AddProductCommand command) {
-        Reservation reservation = reservationRepository.load(command.getOrderId());
+	private SuggestionService suggestionService;
+	
 
-        Product product = productRepository.load(command.getProductId());
+	private ClientRepository clientRepository;
+	
 
-        if (!product.isAvailable()) {
-            Client client = loadClient();
-            product = suggestionService.suggestEquivalent(product, client);
-        }
-
-        reservation.add(product, command.getQuantity());
-
-        reservationRepository.save(reservation);
-
-        return null;
-    }
-
-    private Client loadClient() {
-        return clientRepository.load(systemContext.getSystemUser().getClientId());
-    }
+	private SystemContext systemContext;
+	
+	@Override
+	public Void handle(AddProductCommand command) {
+		Reservation reservation = reservationRepository.load(command.getOrderId());
+		
+		Product product = productRepository.load(command.getProductId());
+		
+		if (! product.isAvailable()){
+			Client client = loadClient();	
+			product = suggestionService.suggestEquivalent(product, client);
+		}
+			
+		reservation.add(product, command.getQuantity());
+		
+		reservationRepository.save(reservation);
+		
+		return null;
+	}
+	
+	private Client loadClient() {
+		return clientRepository.load(systemContext.getSystemUser().getClientId());
+	}
 
 }
