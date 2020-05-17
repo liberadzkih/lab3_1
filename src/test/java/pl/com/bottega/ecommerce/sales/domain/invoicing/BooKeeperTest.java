@@ -7,30 +7,18 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.math.BigDecimal;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-;
+import static org.mockito.Mockito.*;
 
 public class BooKeeperTest {
-    TaxPolicy taxPolicyMock;
     BookKeeper bookKeeper;
-    Tax tax;
 
     @BeforeEach
     void initialize() {
         bookKeeper = new BookKeeper(new InvoiceFactory());
-        tax = new Tax(
-                new Money(BigDecimal.TEN),
-                "Somze Tax"
-        );
-        taxPolicyMock = mock(TaxPolicy.class);
     }
 
     @Test
@@ -63,53 +51,35 @@ public class BooKeeperTest {
     @Test
     void shouldUseCalculateTaxTwice() {
         InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(2);
-        AtomicInteger invocationCount = new AtomicInteger();
 
-        when(taxPolicyMock.calculateTax(any(), any()))
-                .thenAnswer(invocationOnMock -> {
-                    invocationCount.getAndIncrement();
-                    return tax;
-                });
+        TaxPolicy taxPolicy = getTaxPolicyMockWithTax(BigDecimal.TEN, "Some tax");
 
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
-        assertEquals(2, invocationCount.get());
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy, times(2)).calculateTax(any(), any());
     }
 
     @Test
     void shouldNotUseCalculateTax() {
         InvoiceRequest invoiceRequest = getInvoiceRequestWithNumberOfItems(0);
-        AtomicInteger invocationCount = new AtomicInteger();
 
-        when(taxPolicyMock.calculateTax(any(), any()))
-                .thenAnswer(invocationOnMock -> {
-                    invocationCount.getAndIncrement();
-                    return tax;
-                });
+        TaxPolicy taxPolicy = getTaxPolicyMockWithTax(BigDecimal.TEN, "Some tax");
 
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
-        assertEquals(0, invocationCount.get());
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verifyNoInteractions(taxPolicy);
     }
 
     @Test
     void shouldUseMoneyFromProductData() {
-        AtomicReference<Money> moneyAtomicReference = new AtomicReference<>();
-
-        when(taxPolicyMock.calculateTax(any(), any()))
-                .thenAnswer(invocationOnMock -> {
-                    Money money = invocationOnMock.getArgument(1, Money.class);
-                    moneyAtomicReference.set(money);
-                    return tax;
-                });
+        TaxPolicy taxPolicy = getTaxPolicyMockWithTax(BigDecimal.TEN, "Some tax");
 
         RequestItem requestItem = getRequestItem();
-
         InvoiceRequest invoiceRequest = new InvoiceRequestBuilder()
                 .addRequestItem(requestItem)
                 .build();
-
         Money totalCost = requestItem.getTotalCost();
-        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
-        assertEquals(totalCost, moneyAtomicReference.get());
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        verify(taxPolicy).calculateTax(any(), eq(totalCost));
     }
 
 
