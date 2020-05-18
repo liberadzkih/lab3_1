@@ -20,12 +20,14 @@ public class BookKeeperTests {
     private TaxPolicy taxPolicy;
     private BookKeeper bookKeeper;
     private ClientData clientData;
+    private InvoiceRequest invoiceRequest;
 
     @BeforeEach
     public void prepareTest() {
         tax = mock(Tax.class);
         taxPolicy = mock(TaxPolicy.class);
         bookKeeper = new BookKeeper(new InvoiceFactory());
+        invoiceRequest = new InvoiceRequest(clientData);
         clientData = new ClientData(Id.generate(), "ClientName");
         // Tax
         when(tax.getAmount()).thenReturn(Money.ZERO);
@@ -41,7 +43,6 @@ public class BookKeeperTests {
 
     @Test
     public void zeroPositionIssuanceReturnsZeroPositionInvoice() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy)
                                   .getItems()
                                   .size());
@@ -49,7 +50,6 @@ public class BookKeeperTests {
 
     @Test
     public void singlePositionIssuanceReturnsSinglePositionInvoice() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(100);
         Product product = new ProductBuilder().withPrice(money)
                                               .withName("Facemask")
@@ -68,7 +68,6 @@ public class BookKeeperTests {
     // BEHAVIORAL TESTS
     @Test
     public void calculateTaxShouldBeCalledZeroTimes() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         verify(taxPolicy, never()).calculateTax(any(ProductType.class), any(Money.class));
@@ -76,7 +75,6 @@ public class BookKeeperTests {
 
     @Test
     public void calculateTaxShouldBeCalledTwoTimes() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(100);
         Product product = new ProductBuilder().withPrice(money)
                                               .withName("Facemask")
@@ -95,7 +93,6 @@ public class BookKeeperTests {
 
     @Test
     public void calculateTaxShouldBeCalledThreeTimes() {
-        InvoiceRequest invoiceRequest = new InvoiceRequest(clientData);
         Money money = new Money(100);
         Product product = new ProductBuilder().withPrice(money)
                                               .withName("Facemask")
