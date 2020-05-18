@@ -41,6 +41,7 @@ public class BookKeeperTests {
         assertEquals(0, bookKeeper.issuance(invoiceRequest, taxPolicy)
                                   .getItems()
                                   .size());
+        verify(taxPolicy, never()).calculateTax(any(ProductType.class), any(Money.class));
     }
 
     @Test
@@ -58,6 +59,7 @@ public class BookKeeperTests {
         assertEquals(1, bookKeeper.issuance(invoiceRequest, taxPolicy)
                                   .getItems()
                                   .size());
+        verify(taxPolicy, times(1)).calculateTax(requestItem.getProductData().getType(), requestItem.getTotalCost());
     }
 
     // BEHAVIORAL TESTS
@@ -83,7 +85,7 @@ public class BookKeeperTests {
 
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        verify(taxPolicy, times(2)).calculateTax(any(ProductType.class), any(Money.class));
+        verify(taxPolicy, times(2)).calculateTax(requestItem.getProductData().getType(), requestItem.getTotalCost());
     }
 
     @Test
@@ -102,6 +104,6 @@ public class BookKeeperTests {
 
         bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        verify(taxPolicy, times(3)).calculateTax(any(ProductType.class), any(Money.class));
+        verify(taxPolicy, times(3)).calculateTax(requestItem.getProductData().getType(), requestItem.getTotalCost());
     }
 }
