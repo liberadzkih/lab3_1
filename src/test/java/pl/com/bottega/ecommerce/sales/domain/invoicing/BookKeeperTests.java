@@ -15,8 +15,6 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 public class BookKeeperTests {
-
-    private Tax tax;
     private TaxPolicy taxPolicy;
     private BookKeeper bookKeeper;
     private ClientData clientData;
@@ -24,13 +22,10 @@ public class BookKeeperTests {
 
     @BeforeEach
     public void prepareTest() {
-        tax = mock(Tax.class);
         taxPolicy = mock(TaxPolicy.class);
         bookKeeper = new BookKeeper(new InvoiceFactory());
         invoiceRequest = new InvoiceRequest(clientData);
         clientData = new ClientData(Id.generate(), "ClientName");
-        // Tax
-        when(tax.getAmount()).thenReturn(Money.ZERO);
         // TaxPolicy
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(Money.ZERO, "tax"));
     }
