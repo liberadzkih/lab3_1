@@ -41,4 +41,19 @@ public class BookKeeperTest {
         invoiceFactorySpy = Mockito.spy(new InvoiceFactory());
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(21.37), "Tax Description"));
     }
+
+    @Test
+    public void testIssuanceWithOnePositionShouldReturnInvoiceWithOnePosition() {
+        invoiceRequest.add(new RequestItem(productData, 1, new Money(1.99)));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(invoice.getItems(), hasSize(1));
+    }
+
+    @Test
+    public void testIssuanceWithTwoPositionsShouldInvokeCalculateTaxMethodTwice() {
+        invoiceRequest.add(new RequestItem(productData, 1, new Money(2.02)));
+        invoiceRequest.add(new RequestItem(productData, 1, new Money(2.01)));
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Mockito.verify(taxPolicy, Mockito.times(2)).calculateTax(any(ProductType.class), any(Money.class));
+    }
 }
