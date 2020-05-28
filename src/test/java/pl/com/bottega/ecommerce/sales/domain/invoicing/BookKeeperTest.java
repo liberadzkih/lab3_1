@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductBuilder;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
@@ -30,7 +31,6 @@ public class BookKeeperTest {
     BookKeeper bookKeeper;
     Product product;
     ProductData productData;
-    Invoice invoice;
     InvoiceFactory invoiceFactorySpy;
 
     @Before
@@ -38,7 +38,7 @@ public class BookKeeperTest {
         clientData = new ClientData(Id.generate(), "Bob");
         invoiceRequest = new InvoiceRequest(clientData);
         bookKeeper = new BookKeeper(new InvoiceFactory());
-        product = new Product(Id.generate(), new Money(13.37), "Peanut butter", ProductType.FOOD);
+        product = new ProductBuilder().build();
         productData = product.generateSnapshot();
         invoiceFactorySpy = Mockito.spy(new InvoiceFactory());
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(new Money(21.37), "Tax Description"));
@@ -60,7 +60,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void testTotalCostOfInvoice(){
+    public void testTotalCostOfInvoice() {
         for (int i = 0; i < 5; i++) {
             invoiceRequest.add(new RequestItem(productData, 1, new Money(2.02)));
         }
@@ -78,7 +78,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void testIssuanceWithManyPositionsShouldCreateInvoiceOnce(){
+    public void testIssuanceWithManyPositionsShouldCreateInvoiceOnce() {
         for (int i = 0; i < 10; i++) {
             invoiceRequest.add(new RequestItem(productData, 1, new Money(2.05)));
         }
