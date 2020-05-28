@@ -76,4 +76,24 @@ public class BookKeeperTest {
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         assertThat(invoice.getClient(), equalTo(invoiceRequest.getClient()));
     }
+
+    @Test
+    public void testIssuanceWithManyPositionsShouldCreateInvoiceOnce(){
+        for (int i = 0; i < 10; i++) {
+            invoiceRequest.add(new RequestItem(productData, 1, new Money(2.05)));
+        }
+        bookKeeper = new BookKeeper(invoiceFactorySpy);
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Mockito.verify(invoiceFactorySpy, Mockito.times(1)).create(any(ClientData.class));
+    }
+
+    @Test
+    public void testIssuanceWithTenPositionsShouldCallCalculateTaxTenTimes() {
+        for (int i = 0; i < 10; i++) {
+            invoiceRequest.add(new RequestItem(productData, 1, new Money(2.06)));
+        }
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Mockito.verify(taxPolicy, Mockito.times(10)).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
 }
