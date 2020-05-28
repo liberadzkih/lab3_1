@@ -13,6 +13,8 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -55,5 +57,23 @@ public class BookKeeperTest {
         invoiceRequest.add(new RequestItem(productData, 1, new Money(2.01)));
         bookKeeper.issuance(invoiceRequest, taxPolicy);
         Mockito.verify(taxPolicy, Mockito.times(2)).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
+    @Test
+    public void testTotalCostOfInvoice(){
+        for (int i = 0; i < 5; i++) {
+            invoiceRequest.add(new RequestItem(productData, 1, new Money(2.02)));
+        }
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(new Money(10.10), is(equalTo(invoice.getNet())));
+    }
+
+    @Test
+    public void testInvoiceRequestShouldHaveClientData() {
+        for (int i = 0; i < 5; i++) {
+            invoiceRequest.add(new RequestItem(productData, 1, new Money(2.02)));
+        }
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        assertThat(invoice.getClient(), equalTo(invoiceRequest.getClient()));
     }
 }
