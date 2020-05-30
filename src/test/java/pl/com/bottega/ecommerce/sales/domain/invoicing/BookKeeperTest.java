@@ -11,6 +11,9 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -23,6 +26,7 @@ public class BookKeeperTest {
     private ClientData clientData;
     private InvoiceRequest invoiceRequest;
 
+    @Mock
     private TaxPolicy taxPolicy;
 
     private ProductData productData;
@@ -37,11 +41,12 @@ public class BookKeeperTest {
                 .build()
                 .generateSnapshot();
 
-        taxPolicy = (productType, net) -> new Tax(UNRELEVANT_MONEY, "unrelevant");
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(UNRELEVANT_MONEY, "unrelevant"));
 
         requestItem = new RequestItem(productData, 1, UNRELEVANT_MONEY);
     }
 
+    //State tests
     @Test
     public void invoiceRequestWithOnePositionShouldReturnProperInvoice() {
         invoiceRequest.add(requestItem);
@@ -49,5 +54,18 @@ public class BookKeeperTest {
 
         assertEquals(invoice.getItems().size(), 1);
     }
-    
+
+    //Behaviour tests
+    @Test
+    void invoiceRequestWithTwoPositionsShouldCalculateTaxTwoTimes() {
+        RequestItem requestItem1 = new RequestItem(productData, 12, new Money(13.11));
+        RequestItem requestItem2 = new RequestItem(productData, 144, new Money(12.22));
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem2);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        verify(taxPolicy).calculateTax(requestItem1.getProductData().getType(), requestItem1.getTotalCost());
+        verify(taxPolicy).calculateTax(requestItem2.getProductData().getType(), requestItem2.getTotalCost());
+    }
 }
