@@ -10,6 +10,8 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -47,7 +49,25 @@ public class BookKeeperTest {
         invoiceRequest.add(new RequestItem(productData, UNRELEVANT_QUANTITY, UNRELEVANT_MONEY));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
-        assertEquals(invoice.getItems().size(), 1);
+        assertEquals(1, invoice.getItems().size());
+    }
+
+    @Test
+    public void properInvoiceRequestShouldReturnInvoiceWithCorrectClientData() {
+        invoiceRequest.add(new RequestItem(productData, UNRELEVANT_QUANTITY, UNRELEVANT_MONEY));
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertEquals(invoiceRequest.getClientData(), invoice.getClient());
+    }
+
+    @Test
+    public void properInvoiceRequestShouldReturnInvoiceWithCorrectNetAmount() {
+        invoiceRequest.add(new RequestItem(productData, 10, new Money(10.0)));
+        invoiceRequest.add(new RequestItem(productData, 5, new Money(2.0)));
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        assertEquals(new Money(12.0), invoice.getNet());
     }
 
     //Behaviour tests
