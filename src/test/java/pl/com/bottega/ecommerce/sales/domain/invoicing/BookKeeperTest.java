@@ -19,18 +19,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class BookKeeperTest {
     private static final Money UNRELEVANT_MONEY = new Money(2.99);
+    public static final int UNRELEVANT_QUANTITY = 12;
 
     private BookKeeper bookKeeper;
-
     @Mock
     private ClientData clientData;
     private InvoiceRequest invoiceRequest;
-
     @Mock
     private TaxPolicy taxPolicy;
-
     private ProductData productData;
-    private RequestItem requestItem;
 
     @BeforeEach
     public void setUp() {
@@ -42,14 +39,12 @@ public class BookKeeperTest {
                 .generateSnapshot();
 
         when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class))).thenReturn(new Tax(UNRELEVANT_MONEY, "unrelevant"));
-
-        requestItem = new RequestItem(productData, 1, UNRELEVANT_MONEY);
     }
 
     //State tests
     @Test
     public void invoiceRequestWithOnePositionShouldReturnProperInvoice() {
-        invoiceRequest.add(requestItem);
+        invoiceRequest.add(new RequestItem(productData, UNRELEVANT_QUANTITY, UNRELEVANT_MONEY));
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
 
         assertEquals(invoice.getItems().size(), 1);
@@ -58,8 +53,8 @@ public class BookKeeperTest {
     //Behaviour tests
     @Test
     void invoiceRequestWithTwoPositionsShouldCalculateTaxTwoTimes() {
-        RequestItem requestItem1 = new RequestItem(productData, 12, new Money(13.11));
-        RequestItem requestItem2 = new RequestItem(productData, 144, new Money(12.22));
+        RequestItem requestItem1 = new RequestItem(productData, UNRELEVANT_QUANTITY, new Money(13.11));
+        RequestItem requestItem2 = new RequestItem(productData, UNRELEVANT_QUANTITY, new Money(12.22));
         invoiceRequest.add(requestItem1);
         invoiceRequest.add(requestItem2);
 
