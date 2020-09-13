@@ -6,15 +6,15 @@ import org.junit.jupiter.api.Test;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
+import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class BookKeeperTest {
 
@@ -36,10 +36,29 @@ public class BookKeeperTest {
     @Test
     public void invoiceIssuanceRequest_oneItem() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
-        RequestItem requestItem = new RequestItem(new Product(Id.generate(), amount, "cigarettes", ProductType.DRUG).generateSnapshot(), 1, amount);
+        ProductData productData = new Product(Id.generate(), amount, "cigarettes", ProductType.DRUG).generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, amount);
         invoiceRequest.add(requestItem);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         assertEquals(1, invoice.getItems().size());
+    }
+
+    //Test case 2 żądanie wydania faktury z dwiema pozycjami powinno wywołać metodę calculateTax dwa razy
+    @Test
+    public void invoiceIssuanceRequest_twoItems_countCalculateTaxMethodCalls() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
+        ProductData productData = new Product(Id.generate(), amount, "cigarettes", ProductType.DRUG).generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, amount);
+        invoiceRequest.add(requestItem);
+
+        productData = new Product(Id.generate(), amount, "banana", ProductType.FOOD).generateSnapshot();
+        requestItem = new RequestItem(productData, 1, amount);
+        invoiceRequest.add(requestItem);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        verify(taxPolicyMock).calculateTax(ProductType.FOOD, amount);
+        verify(taxPolicyMock).calculateTax(ProductType.DRUG, amount);
+        verify(taxPolicyMock, times(2)).calculateTax(any(ProductType.class), any(Money.class));
     }
 
 }
