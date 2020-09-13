@@ -60,6 +60,7 @@ public class BookKeeperTest {
         assertEquals(999, invoice.getItems().size());
     }
 
+    //behaviour
     @Test
     public void invoiceIssuanceRequest_CurrencyMismatch_IllegalArgumentExceptionTest() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
@@ -76,8 +77,7 @@ public class BookKeeperTest {
 
         assertThrows(IllegalArgumentException.class, () -> bookKeeper.issuance(invoiceRequest, taxPolicyMock));
     }
-
-    //behaviour
+    
     @Test
     public void invoiceIssuanceRequest_twoItems_countCalculateTaxMethodCalls() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
