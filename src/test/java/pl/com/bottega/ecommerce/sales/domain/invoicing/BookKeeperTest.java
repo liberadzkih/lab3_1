@@ -11,8 +11,11 @@ import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductType;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 
 import java.math.BigDecimal;
+import java.util.Currency;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,7 +35,7 @@ public class BookKeeperTest {
         when(taxPolicyMock.calculateTax(any(), any())).thenReturn(new Tax(amount, "tax"));
     }
 
-    //Test case 1 żądanie wydania faktury z jedną pozycją powinno zwrócić fakturę z jedną pozycją
+    //status
     @Test
     public void invoiceIssuanceRequest_oneItem() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
@@ -43,7 +46,38 @@ public class BookKeeperTest {
         assertEquals(1, invoice.getItems().size());
     }
 
-    //Test case 2 żądanie wydania faktury z dwiema pozycjami powinno wywołać metodę calculateTax dwa razy
+    @Test
+    public void invoiceIssuanceRequest_999Items() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
+        ProductData productData;
+        RequestItem requestItem;
+        for (int i = 1; i <= 999; i++) {
+            productData = new Product(Id.generate(), amount, "item of type: " + i, ProductType.STANDARD).generateSnapshot();
+            requestItem = new RequestItem(productData, 1, amount);
+            invoiceRequest.add(requestItem);
+        }
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        assertEquals(999, invoice.getItems().size());
+    }
+
+    @Test
+    public void invoiceIssuanceRequest_CurrencyMismatch_IllegalArgumentExceptionTest() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
+
+        amount = new Money(BigDecimal.ONE, Currency.getInstance(Locale.KOREA));
+        ProductData productData = new Product(Id.generate(), amount, "socks", ProductType.STANDARD).generateSnapshot();
+        RequestItem requestItem = new RequestItem(productData, 1, amount);
+        invoiceRequest.add(requestItem);
+
+        amount = new Money(BigDecimal.ONE, Currency.getInstance(Locale.US));
+        productData = new Product(Id.generate(), amount, "pants", ProductType.STANDARD).generateSnapshot();
+        requestItem = new RequestItem(productData, 1, amount);
+        invoiceRequest.add(requestItem);
+
+        assertThrows(IllegalArgumentException.class, () -> bookKeeper.issuance(invoiceRequest, taxPolicyMock));
+    }
+
+    //behaviour
     @Test
     public void invoiceIssuanceRequest_twoItems_countCalculateTaxMethodCalls() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
