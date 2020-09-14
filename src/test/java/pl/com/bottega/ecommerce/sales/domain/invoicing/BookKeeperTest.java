@@ -39,7 +39,12 @@ public class BookKeeperTest {
     @Test
     public void invoiceIssuanceRequest_oneItem_itemsCountOnInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
-        ProductData productData = new Product(Id.generate(), amount, "cigarettes", ProductType.DRUG).generateSnapshot();
+        Product testProduct = new ProductTestBuilder().id(Id.generate())
+                                                      .productType(ProductType.DRUG)
+                                                      .name("cigarettes")
+                                                      .price(amount)
+                                                      .build();
+        ProductData productData = testProduct.generateSnapshot();
         RequestItem requestItem = new RequestItem(productData, 1, amount);
         invoiceRequest.add(requestItem);
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
@@ -52,7 +57,12 @@ public class BookKeeperTest {
         ProductData productData;
         RequestItem requestItem;
         for (int i = 1; i <= 999; i++) {
-            productData = new Product(Id.generate(), amount, "item of type: " + i, ProductType.STANDARD).generateSnapshot();
+            Product testProduct = new ProductTestBuilder().id(Id.generate())
+                                                          .productType(ProductType.STANDARD)
+                                                          .name("item of type: " + i)
+                                                          .price(amount)
+                                                          .build();
+            productData = testProduct.generateSnapshot();
             requestItem = new RequestItem(productData, 1, amount);
             invoiceRequest.add(requestItem);
         }
@@ -73,12 +83,22 @@ public class BookKeeperTest {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
 
         amount = new Money(BigDecimal.ONE, Currency.getInstance(Locale.KOREA));
-        ProductData productData = new Product(Id.generate(), amount, "socks", ProductType.STANDARD).generateSnapshot();
+        Product testProduct = new ProductTestBuilder().id(Id.generate())
+                                                      .productType(ProductType.STANDARD)
+                                                      .name("socks")
+                                                      .price(amount)
+                                                      .build();
+        ProductData productData = testProduct.generateSnapshot();
         RequestItem requestItem = new RequestItem(productData, 1, amount);
         invoiceRequest.add(requestItem);
 
         amount = new Money(BigDecimal.ONE, Currency.getInstance(Locale.US));
-        productData = new Product(Id.generate(), amount, "pants", ProductType.STANDARD).generateSnapshot();
+        testProduct = new ProductTestBuilder().id(Id.generate())
+                                              .productType(ProductType.STANDARD)
+                                              .name("pants")
+                                              .price(amount)
+                                              .build();
+        productData = testProduct.generateSnapshot();
         requestItem = new RequestItem(productData, 1, amount);
         invoiceRequest.add(requestItem);
 
@@ -88,11 +108,21 @@ public class BookKeeperTest {
     @Test
     public void invoiceIssuanceRequest_twoItems_countCalculateTaxMethodCalls() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
-        ProductData productData = new Product(Id.generate(), amount, "cigarettes", ProductType.DRUG).generateSnapshot();
+        Product testProduct = new ProductTestBuilder().id(Id.generate())
+                                              .productType(ProductType.DRUG)
+                                              .name("cigarettes")
+                                              .price(amount)
+                                              .build();
+        ProductData productData = testProduct.generateSnapshot();
         RequestItem requestItem = new RequestItem(productData, 1, amount);
         invoiceRequest.add(requestItem);
 
-        productData = new Product(Id.generate(), amount, "banana", ProductType.FOOD).generateSnapshot();
+        testProduct = new ProductTestBuilder().id(Id.generate())
+                                               .productType(ProductType.FOOD)
+                                               .name("banana")
+                                               .price(amount)
+                                               .build();
+        productData = testProduct.generateSnapshot();
         requestItem = new RequestItem(productData, 1, amount);
         invoiceRequest.add(requestItem);
 
