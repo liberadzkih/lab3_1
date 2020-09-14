@@ -37,7 +37,7 @@ public class BookKeeperTest {
 
     //status
     @Test
-    public void invoiceIssuanceRequest_oneItem() {
+    public void invoiceIssuanceRequest_oneItem_itemsCountOnInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
         ProductData productData = new Product(Id.generate(), amount, "cigarettes", ProductType.DRUG).generateSnapshot();
         RequestItem requestItem = new RequestItem(productData, 1, amount);
@@ -47,7 +47,7 @@ public class BookKeeperTest {
     }
 
     @Test
-    public void invoiceIssuanceRequest_999Items() {
+    public void invoiceIssuanceRequest_999Items_itemsCountOnInvoice() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
         ProductData productData;
         RequestItem requestItem;
@@ -58,6 +58,13 @@ public class BookKeeperTest {
         }
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
         assertEquals(999, invoice.getItems().size());
+    }
+
+    @Test
+    public void invoiceIssuanceRequest_zeroItems_itemsCountOnInvoice() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        assertEquals(0, invoice.getItems().size());
     }
 
     //behaviour
@@ -77,7 +84,7 @@ public class BookKeeperTest {
 
         assertThrows(IllegalArgumentException.class, () -> bookKeeper.issuance(invoiceRequest, taxPolicyMock));
     }
-    
+
     @Test
     public void invoiceIssuanceRequest_twoItems_countCalculateTaxMethodCalls() {
         InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
@@ -93,6 +100,13 @@ public class BookKeeperTest {
         verify(taxPolicyMock).calculateTax(ProductType.FOOD, amount);
         verify(taxPolicyMock).calculateTax(ProductType.DRUG, amount);
         verify(taxPolicyMock, times(2)).calculateTax(any(ProductType.class), any(Money.class));
+    }
+
+    @Test
+    public void invoiceIssuanceRequest_zeroItems_countCalculateTaxMethodCalls() {
+        InvoiceRequest invoiceRequest = new InvoiceRequest(clientDataMock);
+        bookKeeper.issuance(invoiceRequest, taxPolicyMock);
+        verify(taxPolicyMock, never()).calculateTax(any(ProductType.class), any(Money.class));
     }
 
 }
